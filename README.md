@@ -18,5 +18,5 @@ The next step may change once I have an understanding of the labs/projects speci
 4a. If the program has a file input or test case, run it with this command
 "java filename < inputfile.extension"
 
-4b. If the program doesn't require input (like lab0), use
+4b. If the program doesn't require input, use
 "java filename"
