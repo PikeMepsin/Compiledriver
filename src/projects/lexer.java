@@ -3,9 +3,7 @@
  * @author Mike Pepsin
  */
 
-import java.util.Scanner;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 
 public class lexer {
   public static void main(String[] args) {
@@ -78,46 +76,57 @@ public class lexer {
     int inBrackets = 0;
     int inParens = 0;
         
-    int dfa[][] = {/*a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 { } ( ) ! = + " / * $ space*/
-    /* state 0 */   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 1 */   {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 2 */   {3,0,0,0,0,9,0,3,0,0,0,0,0,3,3,0,0,3,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 3 */   {0,0,0,0,0,0,0,0,4,0,0,4,0,0,5,0,0,4,0,9,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 4 */   {0,0,0,0,9,0,0,0,5,0,0,5,0,5,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 5 */   {0,0,0,0,9,0,0,0,0,0,0,6,0,6,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 6 */   {0,0,0,0,7,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 7 */   {8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    /* state 8 */   {0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+    int dfa[][] = {/*a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  0  1  2  3  4  5  6  7  8  9  {  }  (  )  !  =  +  "  /  *  $  space*/
+    /* state 0 */   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    /* state 1 */   {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    /* state 2 */   {3, 0, 0, 0, 0, 9, 0, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 3 */   {0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 5, 0, 0, 4, 0, 9, 4, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 4 */   {0, 0, 0, 0, 9, 0, 0, 0, 5, 0, 0, 5, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 5 */   {0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 6 */   {0, 0, 0, 0, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 7 */   {8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 8 */   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}};
     
     //position variables
-    int line = 0;
+    int line = 1;
     int pos = 0;
     
-    //position variables for lexing
-    int currentPos = 0;
-    int lastPos = currentPos + 1;
     
-    //main loop for lexing through the code
+    //rebuild the input as a String
+    StringBuffer sb = new StringBuffer();
+    while (lex.hasNextLine()) {
+      sb.append(lex.nextLine());
+      System.out.println(line + "| " + sb.toString());
+      sb.delete(0, sb.length());
+      line++;
+    }
+    /*
     while (lex.hasNextLine()) {
       while (lex.hasNext()) {
         String next = lex.next();
         pos++;
+        //Unrecognized character error
         if (!dfaColumns.containsKey(next)) {
           errors++;
-          for (Token : tokenStream) {
-            printStream(Token.type, Token.lexeme);
-          }
+          printStream(tokenStream);
           System.out.println("Lex terminated with " + errors + "error(s) at [" + line + "," + pos + "]");
           System.out.println("ERROR: Unrecognized character " + next);
           // TODO remove break, move on to next program once error is found after 1 is working
           break;
+        }
+        else {
+          if (dfaColumns.getValue(next)) {
+            String tempType = "ID";
+          } 
         }
         
         codeFragment += next;
         System.out.println(codeFragment);
       }
       line++;
+      pos = 0;
     }
+    */
   }
   
   public static class Token {
@@ -133,5 +142,9 @@ public class lexer {
   
   public static void emit(Token t) {
     //method to emit tokens
+  }
+  
+  public static void printStream(ArrayList tokens) {
+    // TODO
   }
 }
