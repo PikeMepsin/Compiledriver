@@ -102,7 +102,6 @@ public class lexer {
     
     //position variables
     int line = 1;
-    int pos = 0;
     int currentPos = 0;
     int lastPos = currentPos + 1;    
     
@@ -114,53 +113,86 @@ public class lexer {
     while (lex.hasNextLine()) {
       sb.append(lex.nextLine());
       codeFragment = sb.toString();
+      String tokenSoFar = "";
+      int pos = 0;
       
       //lex the line loop
       while (sb.capacity() > 0) {
-        String next = codeFragment.substring(currentPos, lastPos);
-        String tokenSoFar = "";
+        String next = codeFragment.substring(lastPos-1, lastPos);
         tokenSoFar += next;
+        System.out.println(codeFragment + " " + tokenSoFar);
         if (dfaColumns.containsKey(next)) {
           int col = dfaColumns.get(next).intValue();
-          state = dfa[col][state];
+          state = dfa[state][col];
+          System.out.println(col + " " + state);
           if (state > 0) {
-            tokenSoFar += next;
-            lastPos++;
             if (state == 2) { //2 is the accepted state for ID
+              System.out.println("got here");
               Token token = new Token("ID", tokenSoFar, line, pos);
               
-              //next character doesn't follow the path to a keyword, so we can add it as an ID
+              //next character doesn't follow the path to a keyword, so we can emit it as an ID
               int temp = dfaColumns.get(codeFragment.substring(lastPos, lastPos+1)).intValue();
-              if (dfa[temp][state] <= 0) {
+              if (dfa[state][temp] <= 0) {
                 tokenStream.add(token);
+                pos++;
+                sb.delete(0, lastPos);
+                codeFragment = sb.toString();
+                System.out.println(codeFragment);
+                lastPos++;
               }
-              //else is does follow the path to a keyword
+              //else is does follow the path to a keyword so we keep going
               else {
-                //do nothing, continue
+                lastPos++;
               }
             }
+            //accepted states for keywords
             else if (state >= 9 && state < 17) {
-              Token token = new Token("Keyword", tokenMatch.get(state), line, pos);
+              Token token = new Token(tokenMatch.get(state), tokenSoFar, line, pos);
+              tokenStream.add(token);
+              pos += tokenMatch.get(state).length();
+              sb.delete(0, lastPos);
+              codeFragment = sb.toString();
+              System.out.println(codeFragment);
+              printStream(tokenStream, progCounter);
+              tokenSoFar = "";
+              lastPos = 1;
+              state = 1;
+            }
+            else {
+              System.out.println("got here 2");
+              col = dfaColumns.get(codeFragment.substring(lastPos, lastPos+1)).intValue();
+              state = dfa[state][col];
+              lastPos++;
+              System.out.println(col + " " + state);
             }
           }
           else if (state == -1) {
             Token token = new Token("Symbol", tokenSoFar, line, pos);
             tokenStream.add(token);
+            pos += tokenSoFar.length();
+            sb.delete(0, lastPos);
+            codeFragment = sb.toString();
+            lastPos = 1;
+          }
+          else {
+            System.out.println("got here 3");
+            col = dfaColumns.get(codeFragment.substring(lastPos, lastPos+1)).intValue();
+            state = dfa[state][col];
+            lastPos++;
+            System.out.println(col + " " + state);
           }
           
         }
         
-        sb.delete(currentPos, lastPos);
-        currentPos = lastPos;
+        /*currentPos = lastPos;
         lastPos++;
-        codeFragment = sb.toString();
+        codeFragment = sb.toString();*/
       }
-      System.out.println(line + "| " + sb.toString());
-      sb.delete(0, sb.length());
+      
       line++;
     }
     
-    printStream(tokenStream);
+    printStream(tokenStream, progCounter);
     /*
     while (lex.hasNextLine()) {
       while (lex.hasNext()) {
@@ -205,9 +237,13 @@ public class lexer {
     }
   }
   
-  public static void printStream(ArrayList tokens) {
+  public static void printStream(ArrayList tokens, int progNum) {
+    System.out.println("INFO - Compilation started");
+    System.out.println("INFO - Compiling Program " + progNum);
     for (Object token: tokens) {
-      //TODO
+      /*String output = String.format("DEBUG - Lexer - %s [ %s ] found at (%d:%d)", token.type, token.lexeme, token.lineNum, token.position);
+      System.out.println(output);*/
+      System.out.println(token);
     }
   }
 }
