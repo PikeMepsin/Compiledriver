@@ -8,6 +8,19 @@ import java.util.*;
 public class lexer {
   public static void main(String[] args) {
     
+    //hashmap for matching accepted states to their symbols
+    HashMap<Integer, String> tokenMatch = new HashMap<>();
+    tokenMatch.put(9, "PRINT");
+    tokenMatch.put(10, "WHILE");
+    tokenMatch.put(11, "IF");
+    tokenMatch.put(12, "INT");
+    tokenMatch.put(13, "STRING");
+    tokenMatch.put(14, "BOOLEAN");
+    tokenMatch.put(15, "BOOL_T");
+    tokenMatch.put(16, "BOOL_F");
+    tokenMatch.put(17, "CHAR");
+    //TODO: Digits
+    
     //hashmap for determining which column to use in the dfa matrix during lex
     HashMap<String, Integer> dfaColumns = new HashMap<>();
     dfaColumns.put("a", 0);
@@ -79,27 +92,75 @@ public class lexer {
     int dfa[][] = {/*a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  0  1  2  3  4  5  6  7  8  9  {  }  (  )  !  =  +  "  /  *  $  space*/
     /* state 0 */   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     /* state 1 */   {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    /* state 2 */   {3, 0, 0, 0, 0, 9, 0, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 3 */   {0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 5, 0, 0, 4, 0, 9, 4, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 4 */   {0, 0, 0, 0, 9, 0, 0, 0, 5, 0, 0, 5, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 5 */   {0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 6 */   {0, 0, 0, 0, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 7 */   {8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 8 */   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}};
+    /* state 2 */   {3, 0, 0, 0, 0,11, 0, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 3 */   {0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 5, 0, 0, 4, 0,12, 4, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 4 */   {0, 0, 0, 0,15, 0, 0, 0, 5, 0, 0, 5, 0, 5, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 5 */   {0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 6 */   {0, 0, 0, 0, 7, 0,13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 7 */   {8, 0, 0, 0,16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    /* state 8 */   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}};
     
     //position variables
     int line = 1;
     int pos = 0;
-    
+    int currentPos = 0;
+    int lastPos = currentPos + 1;    
     
     //rebuild the input as a String
+    //this implementation means that lines are read one-at-a-time, so even with good formatting,
+    //tokens cannot exist on separate lines.
+    //grab the line loop
     StringBuffer sb = new StringBuffer();
     while (lex.hasNextLine()) {
       sb.append(lex.nextLine());
+      codeFragment = sb.toString();
+      
+      //lex the line loop
+      while (sb.capacity() > 0) {
+        String next = codeFragment.substring(currentPos, lastPos);
+        String tokenSoFar = "";
+        tokenSoFar += next;
+        if (dfaColumns.containsKey(next)) {
+          int col = dfaColumns.get(next).intValue();
+          state = dfa[col][state];
+          if (state > 0) {
+            tokenSoFar += next;
+            lastPos++;
+            if (state == 2) { //2 is the accepted state for ID
+              Token token = new Token("ID", tokenSoFar, line, pos);
+              
+              //next character doesn't follow the path to a keyword, so we can add it as an ID
+              int temp = dfaColumns.get(codeFragment.substring(lastPos, lastPos+1)).intValue();
+              if (dfa[temp][state] <= 0) {
+                tokenStream.add(token);
+              }
+              //else is does follow the path to a keyword
+              else {
+                //do nothing, continue
+              }
+            }
+            else if (state >= 9 && state < 17) {
+              Token token = new Token("Keyword", tokenMatch.get(state), line, pos);
+            }
+          }
+          else if (state == -1) {
+            Token token = new Token("Symbol", tokenSoFar, line, pos);
+            tokenStream.add(token);
+          }
+          
+        }
+        
+        sb.delete(currentPos, lastPos);
+        currentPos = lastPos;
+        lastPos++;
+        codeFragment = sb.toString();
+      }
       System.out.println(line + "| " + sb.toString());
       sb.delete(0, sb.length());
       line++;
     }
+    
+    printStream(tokenStream);
     /*
     while (lex.hasNextLine()) {
       while (lex.hasNext()) {
@@ -133,18 +194,20 @@ public class lexer {
     //class variables
     public String type;
     public String lexeme;
+    int lineNum;
+    int position;
     
-    public Token(String type, String lexeme) {
+    public Token(String type, String lexeme, int lineNum, int position) {
       this.type = type;
       this.lexeme = lexeme;
+      this.lineNum = lineNum;
+      this.position = position;
     }
   }
   
-  public static void emit(Token t) {
-    //method to emit tokens
-  }
-  
   public static void printStream(ArrayList tokens) {
-    // TODO
+    for (Object token: tokens) {
+      //TODO
+    }
   }
 }
