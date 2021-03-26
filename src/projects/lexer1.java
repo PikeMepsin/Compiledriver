@@ -30,7 +30,6 @@ public class lexer1 {
     RBRACE("[}]"),
     NUM("[0-9]"),
     CHAR("[a-z]"),
-    CRLF("[\\n]"),
     WHITESPACE("[\\s]+"),
     ERR(".");
     
@@ -50,8 +49,8 @@ public class lexer1 {
     
     boolean inQuotes = false;
     boolean inComments = false;
-    boolean inBrackets = false;
-    boolean inParens = false;
+    int inBrackets = 0;
+    int inParens = 0;
     boolean printed = false;
     
     while (lex.hasNextLine()) {
@@ -112,6 +111,48 @@ public class lexer1 {
           tokens.add(new Token("ID", snoop.group(TokenNames.ID.name()),
           line, snoop.start()));
         }
+        else if (snoop.group(TokenNames.BOOLEQ.name()) != null) {
+        tokens.add(new Token("BOOLEQ", snoop.group(TokenNames.BOOLEQ.name()),
+          line, snoop.start()));
+        }
+        else if (snoop.group(TokenNames.BOOLINEQ.name()) != null) {
+          tokens.add(new Token("BOOLINEQ", snoop.group(TokenNames.BOOLINEQ.name()),
+          line, snoop.start()));
+        }
+        else if (snoop.group(TokenNames.ASSIGNOP.name()) != null) {
+          tokens.add(new Token("ASSIGNOP", snoop.group(TokenNames.ASSIGNOP.name()),
+          line, snoop.start()));
+        }
+        else if (snoop.group(TokenNames.INCROP.name()) != null) {
+          tokens.add(new Token("INCROP", snoop.group(TokenNames.INCROP.name()),
+          line, snoop.start()));
+        }
+        else if (snoop.group(TokenNames.QUOTE.name()) != null) {
+          tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
+          line, snoop.start()));
+          inQuotes = true;
+        }
+        else if (snoop.group(TokenNames.OPENPAREN.name()) != null) {
+          tokens.add(new Token("OPENPAREN", snoop.group(TokenNames.OPENPAREN.name()),
+          line, snoop.start()));
+          inParens++;
+        }
+        else if (snoop.group(TokenNames.CLOSEPAREN.name()) != null) {
+          tokens.add(new Token("CLOSEPAREN", snoop.group(TokenNames.CLOSEPAREN.name()),
+          line, snoop.start()));
+          inParens--;
+        }
+        else if (snoop.group(TokenNames.LBRACE.name()) != null) {
+          tokens.add(new Token("LBRACE", snoop.group(TokenNames.LBRACE.name()),
+          line, snoop.start()));
+          inBrackets++;
+        }
+        else if (snoop.group(TokenNames.RBRACE.name()) != null) {
+          tokens.add(new Token("RBRACE", snoop.group(TokenNames.RBRACE.name()),
+          line, snoop.start()));
+          inBrackets--;
+        }
+        //TODO add effects for inBrackets, inParens
         else if (snoop.group(TokenNames.EOP.name()) != null) {
           tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
           line, snoop.start()));
@@ -121,6 +162,12 @@ public class lexer1 {
           progCounter++;
           line = 1;
           tokens.clear();
+        }
+        //TODO fix error messaging, maybe add as token and have special output
+        else if (snoop.group(TokenNames.ERR.name()) != null) {
+          System.out.println("error found");
+          errors++;
+          System.out.println(snoop.group() + " is not an accepted character");
         }
       }
       line++;
