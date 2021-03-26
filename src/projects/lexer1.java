@@ -34,7 +34,7 @@ public class lexer1 {
     WHITESPACE("[\\s]+"),
     ERR(".");
     
-    public String pattern;
+    public final String pattern;
     TokenNames(String pattern) {
       this.pattern = pattern;
     }
@@ -54,23 +54,29 @@ public class lexer1 {
     boolean inParens = false;
     
     while (lex.hasNextLine()) {
-      StringBuffer input = new StringBuffer();
-      input.append(lex.nextLine());
+      String input = lex.nextLine();
       
       StringBuffer patternBuilder = new StringBuffer();
       
       for (TokenNames tokenName : TokenNames.values()) {
-        patternBuilder.append(String.format("|<%s>%s", tokenName.name(), tokenName.pattern));
+        patternBuilder.append(String.format("|(?<%s>%s)", tokenName.name(), tokenName.pattern));
       }
+      //patternBuilder.append("|hello");
             
-      Pattern lexemes = Pattern.compile(new String(patternBuilder.substring(1)), Pattern.DOTALL);
+      Pattern lexemes = Pattern.compile(patternBuilder.substring(1), Pattern.DOTALL);
       Matcher snoop = lexemes.matcher(input);
-      System.out.println(input);
+      
+      //System.out.println(lexemes);
       //System.out.println(patternBuilder);
-      MatchResult result = snoop.toMatchResult();
-      System.out.println(result);
+      //MatchResult result = snoop.toMatchResult();
+      //System.out.println(result.group());
+      
       while(snoop.find()) {
+    	//for testing purposes
         System.out.println("snoop found");
+        
+        //System.out.println(snoop.group());
+        
         if (snoop.group(TokenNames.PRINT.name()) != null) {
           tokens.add(new Token("PRINT", snoop.group(TokenNames.PRINT.name()),
           line, snoop.start()));
