@@ -1,6 +1,4 @@
-a
-b
-c
-d
-e
-f
+{
+inta=0
+intb=a
+}$
