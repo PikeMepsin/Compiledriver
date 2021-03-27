@@ -77,18 +77,19 @@ public class lexer1 {
         }
         else if (snoop.group(TokenNames.EOP.name()) != null) {
           tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
           printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
           printed = true;
           progCounter++;
-          line = 1;
           tokens.clear();
+          errors = 0;
+          warnings = 0;
         }
         else if (inQuotes && !(snoop.group(TokenNames.ID.name()) != null || snoop.group(TokenNames.QUOTE.name()) != null)) {
           // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
           // they have identical regex but CHAR doesn't work for some reason
           // anyway, this processes anything in quotes as an error if its not a "char" or another quote
-          tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()));
+          tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
           errors++;
         }
         else if (inComments) {
@@ -104,61 +105,61 @@ public class lexer1 {
         }
         else if (snoop.group(TokenNames.PRINT.name()) != null) {
           tokens.add(new Token("PRINT", snoop.group(TokenNames.PRINT.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.WHILE.name()) != null) {
           tokens.add(new Token("WHILE", snoop.group(TokenNames.WHILE.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.IF.name()) != null) {
           tokens.add(new Token("IF", snoop.group(TokenNames.IF.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.TYPEINT.name()) != null) {
           tokens.add(new Token("TYPEINT", snoop.group(TokenNames.TYPEINT.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.TYPESTRING.name()) != null) {
           tokens.add(new Token("TYPESTRING", snoop.group(TokenNames.TYPESTRING.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.TYPEBOOLEAN.name()) != null) {
           tokens.add(new Token("TYPEBOOLEAN", snoop.group(TokenNames.TYPEBOOLEAN.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.BOOLVALT.name()) != null) {
           tokens.add(new Token("BOOLVALT", snoop.group(TokenNames.BOOLVALT.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.BOOLVALF.name()) != null) {
           tokens.add(new Token("BOOLVALF", snoop.group(TokenNames.BOOLVALF.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.ID.name()) != null) {
           if (inQuotes) {
             tokens.add(new Token("CHAR", snoop.group(TokenNames.ID.name()),
-                line, snoop.start()));
+                line, snoop.start()+1));
           }
           else {
             tokens.add(new Token("ID", snoop.group(TokenNames.ID.name()),
-                line, snoop.start()));
+                line, snoop.start()+1));
           }
         }
         else if (snoop.group(TokenNames.BOOLEQ.name()) != null) {
         tokens.add(new Token("BOOLEQ", snoop.group(TokenNames.BOOLEQ.name()),
-            line, snoop.start()));
+            line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.BOOLINEQ.name()) != null) {
           tokens.add(new Token("BOOLINEQ", snoop.group(TokenNames.BOOLINEQ.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.ASSIGNOP.name()) != null) {
           tokens.add(new Token("ASSIGNOP", snoop.group(TokenNames.ASSIGNOP.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.INCROP.name()) != null) {
           tokens.add(new Token("INCROP", snoop.group(TokenNames.INCROP.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.QUOTE.name()) != null) {
           if (!inQuotes) {
@@ -168,35 +169,35 @@ public class lexer1 {
             inQuotes = false;
           }
           tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.OPENPAREN.name()) != null) {
           tokens.add(new Token("OPENPAREN", snoop.group(TokenNames.OPENPAREN.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.CLOSEPAREN.name()) != null) {
           tokens.add(new Token("CLOSEPAREN", snoop.group(TokenNames.CLOSEPAREN.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.LBRACE.name()) != null) {
           tokens.add(new Token("LBRACE", snoop.group(TokenNames.LBRACE.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.RBRACE.name()) != null) {
           tokens.add(new Token("RBRACE", snoop.group(TokenNames.RBRACE.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.NUM.name()) != null) {
           tokens.add(new Token("NUM", snoop.group(TokenNames.NUM.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.CHAR.name()) != null) {
           tokens.add(new Token("CHAR", snoop.group(TokenNames.CHAR.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
         }
         else if (snoop.group(TokenNames.ERR.name()) != null) {
           tokens.add(new Token("ERROR", snoop.group(TokenNames.ERR.name()),
-              line, snoop.start()));
+              line, snoop.start()+1));
           errors++;
           
         }
@@ -249,6 +250,14 @@ public class lexer1 {
       System.out.println("Program ended inside comments");
       warn++;
     }
-    System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
+    if (err == 0) {
+      System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
+    }
+    else {
+      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)");
+    }
+    
+    // for formatting multi-program lex
+    System.out.println();
   }
 }
