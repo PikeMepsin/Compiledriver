@@ -6,6 +6,13 @@ import java.util.*;
 import java.io.*;
 import java.lang.Math;
 
+/**
+ * Project 1 for Compilers: The Lexer
+ * Professor Alan Labouseur
+ * CMPT432
+ * @author PikeMepsin
+ */
+
 public class lexer1 {
   
   public static enum TokenNames {
@@ -43,27 +50,31 @@ public class lexer1 {
   }
   public static void main(String[] args) {
     ArrayList<Token> tokens = new ArrayList<>();
-    int progCounter = 1;
-  
     Scanner lex = new Scanner(System.in);
+    
+    // counters
+    int progCounter = 1;
     int warnings = 0;
     int errors = 0;
     int line = 1;
     
+    // flags
     boolean inQuotes = false;
     boolean inComments = false;
     boolean printed = false;
     
+    // this is the lex loop, reading line by line from a text file
     while (lex.hasNextLine()) {
       printed = false;
       String input = lex.nextLine();
       
+      // construct the pattern
       StringBuffer patternBuilder = new StringBuffer();
-      
       for (TokenNames tokenName : TokenNames.values()) {
         patternBuilder.append(String.format("|(?<%s>%s)", tokenName.name(), tokenName.pattern));
       }
-            
+      
+      // initialize pattern and matcher objects
       Pattern lexemes = Pattern.compile(patternBuilder.substring(1), Pattern.DOTALL);
       Matcher snoop = lexemes.matcher(input);
       
@@ -76,6 +87,7 @@ public class lexer1 {
           // process whitespace, do nothing with it
         }
         else if (snoop.group(TokenNames.EOP.name()) != null) {
+          // the EOP symbol is the be-all end-all, we check for it first
           tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
               line, snoop.start()+1));
           printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
@@ -103,6 +115,7 @@ public class lexer1 {
         else if (snoop.group(TokenNames.INVALIDCOMMENT.name()) != null) {
           inComments = true;
         }
+        // keyword matching
         else if (snoop.group(TokenNames.PRINT.name()) != null) {
           tokens.add(new Token("PRINT", snoop.group(TokenNames.PRINT.name()),
               line, snoop.start()+1));
@@ -135,6 +148,7 @@ public class lexer1 {
           tokens.add(new Token("BOOLVALF", snoop.group(TokenNames.BOOLVALF.name()),
               line, snoop.start()+1));
         }
+        // ID matching
         else if (snoop.group(TokenNames.ID.name()) != null) {
           if (inQuotes) {
             tokens.add(new Token("CHAR", snoop.group(TokenNames.ID.name()),
@@ -145,6 +159,7 @@ public class lexer1 {
                 line, snoop.start()+1));
           }
         }
+        // symbol, num, and char matching
         else if (snoop.group(TokenNames.BOOLEQ.name()) != null) {
         tokens.add(new Token("BOOLEQ", snoop.group(TokenNames.BOOLEQ.name()),
             line, snoop.start()+1));
@@ -195,6 +210,8 @@ public class lexer1 {
           tokens.add(new Token("CHAR", snoop.group(TokenNames.CHAR.name()),
               line, snoop.start()+1));
         }
+        // anything that we haven't caught yet is not part of the grammar, it is added as an error token
+        // error tokens are handled slightly differently later for the sake of the output
         else if (snoop.group(TokenNames.ERR.name()) != null) {
           tokens.add(new Token("ERROR", snoop.group(TokenNames.ERR.name()),
               line, snoop.start()+1));
@@ -204,6 +221,7 @@ public class lexer1 {
       }
       line++;
     }
+    // this statement catches any program(s) that don't end in EOP
     if (!printed) {
       Token lastToken = tokens.get(tokens.size() -1);
       String lastLexeme = lastToken.lexeme;
@@ -232,6 +250,7 @@ public class lexer1 {
   }
   
   public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn, boolean openQ, boolean openC) {
+    // print method, called after EOP is reached, or at the end of input otherwise
     String output = "";
     System.out.println("INFO - Compilation started");
     System.out.println("INFO - Compiling Program " + progNum);
