@@ -32,6 +32,7 @@ public class lexer1 {
     NUM("[0-9]"),
     CHAR("[a-z]"),
     VALIDCOMMENT("(?<=)\\/\\*.*?(?=)\\*\\/"),
+    INVALIDCOMMENT("(/\\*)"),
     WHITESPACE("[\\s]+"),
     ERR(".");
     
@@ -74,6 +75,15 @@ public class lexer1 {
         if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
           // process whitespace, do nothing with it
         }
+        else if (snoop.group(TokenNames.EOP.name()) != null) {
+          tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
+              line, snoop.start()));
+          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
+          printed = true;
+          progCounter++;
+          line = 1;
+          tokens.clear();
+        }
         else if (inQuotes && !(snoop.group(TokenNames.ID.name()) != null || snoop.group(TokenNames.QUOTE.name()) != null)) {
           // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
           // they have identical regex but CHAR doesn't work for some reason
@@ -81,8 +91,16 @@ public class lexer1 {
           tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()));
           errors++;
         }
+        else if (inComments) {
+          // you're in a comment, silly, nothing is going to happen
+          // seriously though, this is the endpoint only if there was an unclosed comment block
+          // that's what makes it different from the next
+        }
         else if (snoop.group(TokenNames.VALIDCOMMENT.name()) != null) {
           // process comment, do nothing with it
+        }
+        else if (snoop.group(TokenNames.INVALIDCOMMENT.name()) != null) {
+          inComments = true;
         }
         else if (snoop.group(TokenNames.PRINT.name()) != null) {
           tokens.add(new Token("PRINT", snoop.group(TokenNames.PRINT.name()),
@@ -176,17 +194,6 @@ public class lexer1 {
           tokens.add(new Token("CHAR", snoop.group(TokenNames.CHAR.name()),
               line, snoop.start()));
         }
-        //TODO add effects for inBrackets, inParens
-        else if (snoop.group(TokenNames.EOP.name()) != null) {
-          tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
-              line, snoop.start()));
-          printStream(tokens, progCounter, errors, warnings);
-          printed = true;
-          progCounter++;
-          line = 1;
-          tokens.clear();
-        }
-        //TODO fix error messaging, maybe add as token and have special output
         else if (snoop.group(TokenNames.ERR.name()) != null) {
           tokens.add(new Token("ERROR", snoop.group(TokenNames.ERR.name()),
               line, snoop.start()));
@@ -201,7 +208,7 @@ public class lexer1 {
       String lastLexeme = lastToken.lexeme;
       if (!lastLexeme.equals("$") && !printed) {
         warnings++;
-        printStream(tokens, progCounter, errors, warnings);
+        printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
         System.out.println("No end-of-program symbol found");
       }
     }
@@ -223,7 +230,7 @@ public class lexer1 {
     }
   }
   
-  public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn) {
+  public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn, boolean openQ, boolean openC) {
     String output = "";
     System.out.println("INFO - Compilation started");
     System.out.println("INFO - Compiling Program " + progNum);
@@ -233,6 +240,14 @@ public class lexer1 {
         output = String.format("ERROR at line (%d:%d) - %s is not an accepted character", token.lineNum, token.position, token.lexeme);
       }
       System.out.println(output);
+    }
+    if (openQ) {
+      System.out.println("Program ended inside a quote");
+      warn++;
+    }
+    if (openC) {
+      System.out.println("Program ended inside comments");
+      warn++;
     }
     System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
   }
