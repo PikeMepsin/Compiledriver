@@ -10,7 +10,7 @@ import java.lang.Math;
  * Project 1 for Compilers: The Lexer
  * Professor Alan Labouseur
  * CMPT432
- * @author PikeMepsin
+ * @author Michael Pepsin
  */
 
 public class lexer1 {
@@ -40,6 +40,7 @@ public class lexer1 {
     CHAR("[a-z]"),
     VALIDCOMMENT("(?<=)\\/\\*.*?(?=)\\*\\/"),
     INVALIDCOMMENT("(/\\*)"),
+    CRLF("\\n"),
     SPACE(" "),
     WHITESPACE("[\\s]+"),
     ERR(".");
@@ -84,21 +85,7 @@ public class lexer1 {
         //System.out.println("snoop found");
         //System.out.println(snoop.group());
         
-        if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
-          // process whitespace, do nothing with it
-        }
-        else if (snoop.group(TokenNames.EOP.name()) != null) {
-          // the EOP symbol is the be-all end-all, we check for it first
-          tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
-              line, snoop.start()+1));
-          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
-          printed = true;
-          progCounter++;
-          tokens.clear();
-          errors = 0;
-          warnings = 0;
-        }
-        else if (inQuotes) {
+        if (inQuotes) {
           // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
           // they have identical regex but CHAR doesn't work for some reason
           // anyway, this processes anything in quotes as an error if its not a "char" or another quote
@@ -110,6 +97,10 @@ public class lexer1 {
             tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
                 line, snoop.start()+1));
             inQuotes = false;
+          }
+          else if (snoop.group(TokenNames.CRLF.name()) != null) {
+            System.out.println("CRLF found");
+            tokens.add(new Token("ERROR", "\n", line, snoop.start()+1));
           }
           else if (snoop.group(TokenNames.SPACE.name()) != null) {
             tokens.add(new Token("SPACE", snoop.group(TokenNames.SPACE.name()),
@@ -129,6 +120,23 @@ public class lexer1 {
             tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
             errors++;
           }
+        }
+        else if (snoop.group(TokenNames.CRLF.name()) != null) {
+          System.out.println("CRLF found");
+        }
+        else if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
+          // process whitespace, do nothing with it
+        }
+        else if (snoop.group(TokenNames.EOP.name()) != null) {
+          // the EOP symbol is the be-all end-all, we check for it first
+          tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
+              line, snoop.start()+1));
+          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
+          printed = true;
+          progCounter++;
+          tokens.clear();
+          errors = 0;
+          warnings = 0;
         }
         else if (inComments) {
           // you're in a comment, silly, nothing is going to happen
@@ -248,8 +256,8 @@ public class lexer1 {
       line++;
     }
     // this statement catches any program(s) that don't end in EOP
-    if (!printed) {
-      Token lastToken = tokens.get(tokens.size() -1);
+    if (!printed && !tokens.isEmpty()) {
+      Token lastToken = tokens.get(tokens.size()-1);
       String lastLexeme = lastToken.lexeme;
       if (!lastLexeme.equals("$") && !printed) {
         warnings++;
