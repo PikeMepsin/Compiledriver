@@ -40,6 +40,7 @@ public class lexer1 {
     CHAR("[a-z]"),
     VALIDCOMMENT("(?<=)\\/\\*.*?(?=)\\*\\/"),
     INVALIDCOMMENT("(/\\*)"),
+    SPACE(" "),
     WHITESPACE("[\\s]+"),
     ERR(".");
     
@@ -97,12 +98,37 @@ public class lexer1 {
           errors = 0;
           warnings = 0;
         }
-        else if (inQuotes && !(snoop.group(TokenNames.ID.name()) != null || snoop.group(TokenNames.QUOTE.name()) != null)) {
+        else if (inQuotes) {
           // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
           // they have identical regex but CHAR doesn't work for some reason
           // anyway, this processes anything in quotes as an error if its not a "char" or another quote
-          tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
-          errors++;
+          if (snoop.group(TokenNames.ID.name()) != null) {
+            tokens.add(new Token("CHAR", snoop.group(TokenNames.ID.name()),
+                line, snoop.start()+1));
+          }
+          else if (snoop.group(TokenNames.QUOTE.name()) != null) {
+            tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
+                line, snoop.start()+1));
+            inQuotes = false;
+          }
+          else if (snoop.group(TokenNames.SPACE.name()) != null) {
+            tokens.add(new Token("SPACE", snoop.group(TokenNames.SPACE.name()),
+                line, snoop.start()+1));
+          }
+          else if (snoop.group(TokenNames.PRINT.name()) != null || snoop.group(TokenNames.IF.name()) != null || snoop.group(TokenNames.WHILE.name()) != null || 
+              snoop.group(TokenNames.TYPEINT.name()) != null || snoop.group(TokenNames.TYPESTRING.name()) != null || snoop.group(TokenNames.TYPEBOOLEAN.name()) != null || 
+              snoop.group(TokenNames.BOOLVALT.name()) != null || snoop.group(TokenNames.BOOLVALF.name()) != null) {
+            // this is admittedly a bruce force tactic, but it tokenizes keywords without accepting invalid characters
+            String keyword = snoop.group();
+            int index = snoop.start()+1;
+            for (int z=0; z<keyword.length(); z++) {
+              tokens.add(new Token("CHAR", keyword.substring(z, z+1), line, index+z));
+            }
+          }
+          else {
+            tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
+            errors++;
+          }
         }
         else if (inComments) {
           // you're in a comment, silly, nothing is going to happen
