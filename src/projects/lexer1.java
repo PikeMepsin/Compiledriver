@@ -40,7 +40,7 @@ public class lexer1 {
     CHAR("[a-z]"),
     VALIDCOMMENT("(?<=)\\/\\*.*?(?=)\\*\\/"),
     INVALIDCOMMENT("(/\\*)"),
-    CRLF("\\n"),
+    CRLF("[\\r\\n]+"),
     SPACE(" "),
     WHITESPACE("[\\s]+"),
     ERR(".");
@@ -99,7 +99,8 @@ public class lexer1 {
             inQuotes = false;
           }
           else if (snoop.group(TokenNames.CRLF.name()) != null) {
-            System.out.println("CRLF found");
+            // doesn't work
+            // System.out.println("CRLF found");
             tokens.add(new Token("ERROR", "\n", line, snoop.start()+1));
           }
           else if (snoop.group(TokenNames.SPACE.name()) != null) {
@@ -121,14 +122,11 @@ public class lexer1 {
             errors++;
           }
         }
-        else if (snoop.group(TokenNames.CRLF.name()) != null) {
-          System.out.println("CRLF found");
-        }
         else if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
           // process whitespace, do nothing with it
         }
         else if (snoop.group(TokenNames.EOP.name()) != null) {
-          // the EOP symbol is the be-all end-all, we check for it first
+          // the EOP symbol is the be-all end-all, we check for it early
           tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
               line, snoop.start()+1));
           printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
@@ -257,13 +255,7 @@ public class lexer1 {
     }
     // this statement catches any program(s) that don't end in EOP
     if (!printed && !tokens.isEmpty()) {
-      Token lastToken = tokens.get(tokens.size()-1);
-      String lastLexeme = lastToken.lexeme;
-      if (!lastLexeme.equals("$") && !printed) {
-        warnings++;
-        printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
-        System.out.println("No end-of-program symbol found");
-      }
+      printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
     }
     
   }
@@ -295,12 +287,19 @@ public class lexer1 {
       }
       System.out.println(output);
     }
+    
     if (openQ) {
       System.out.println("Program ended inside a quote");
       warn++;
     }
     if (openC) {
       System.out.println("Program ended inside comments");
+      warn++;
+    }
+    Token lastToken = tokens.get(tokens.size()-1);
+    String lastLexeme = lastToken.lexeme;
+    if (!lastLexeme.equals("$")) {
+      System.out.println("No end-of-program symbol found");
       warn++;
     }
     if (err == 0) {
