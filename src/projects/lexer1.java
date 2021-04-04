@@ -85,7 +85,33 @@ public class lexer1 {
         //System.out.println("snoop found");
         //System.out.println(snoop.group());
         
-        if (inQuotes) {
+        
+        if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
+          // process whitespace, do nothing with it
+        }
+        else if (snoop.group(TokenNames.EOP.name()) != null) {
+          // the EOP symbol is the be-all end-all, we check for it early
+          tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
+              line, snoop.start()+1));
+          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
+          printed = true;
+          progCounter++;
+          tokens.clear();
+          errors = 0;
+          warnings = 0;
+        }
+        else if (inComments) {
+          // you're in a comment, silly, nothing is going to happen
+          // seriously though, this is the endpoint only if there was an unclosed comment block
+          // that's what makes it different from the next
+        }
+        else if (snoop.group(TokenNames.VALIDCOMMENT.name()) != null) {
+          // process comment, do nothing with it
+        }
+        else if (snoop.group(TokenNames.INVALIDCOMMENT.name()) != null) {
+          inComments = true;
+        }
+        else if (inQuotes) {
           // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
           // they have identical regex but CHAR doesn't work for some reason
           // anyway, this processes anything in quotes as an error if its not a "char" or another quote
@@ -121,31 +147,6 @@ public class lexer1 {
             tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
             errors++;
           }
-        }
-        else if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
-          // process whitespace, do nothing with it
-        }
-        else if (snoop.group(TokenNames.EOP.name()) != null) {
-          // the EOP symbol is the be-all end-all, we check for it early
-          tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
-              line, snoop.start()+1));
-          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
-          printed = true;
-          progCounter++;
-          tokens.clear();
-          errors = 0;
-          warnings = 0;
-        }
-        else if (inComments) {
-          // you're in a comment, silly, nothing is going to happen
-          // seriously though, this is the endpoint only if there was an unclosed comment block
-          // that's what makes it different from the next
-        }
-        else if (snoop.group(TokenNames.VALIDCOMMENT.name()) != null) {
-          // process comment, do nothing with it
-        }
-        else if (snoop.group(TokenNames.INVALIDCOMMENT.name()) != null) {
-          inComments = true;
         }
         // keyword matching
         else if (snoop.group(TokenNames.PRINT.name()) != null) {
