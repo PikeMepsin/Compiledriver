@@ -44,6 +44,29 @@ public class CST {
     this.pointer = node;
   }
   
+  public void printCST(CSTNode node, int depth) {
+    String formatTree = "";
+    
+    for (int x=0; x<depth; x++) {
+      formatTree += "-";
+    }
+    
+    // handles branch nodes (nodes with children)
+    if (node.tree.size() > 0) {
+      formatTree += "<" + node.token + ">";
+      System.out.println(formatTree);
+      
+      for (int y=0; y<node.tree.size(); y++) {
+        printCST(node.tree.get(y), depth++);
+      }
+    }
+    // handles leaf nodes
+    else {
+      formatTree += "[ " + node.token + " ]";
+      System.out.println(formatTree);
+    }
+  }
+  
   // climb the tree, hence the recursion
   public void climb() {
     if (this.pointer.parent != null) {
