@@ -130,7 +130,7 @@ public class lexer {
             tokens.add(new Token("ERROR", "\n", line, snoop.start()+1));
           }
           else if (snoop.group(TokenNames.SPACE.name()) != null) {
-            tokens.add(new Token("SPACE", snoop.group(TokenNames.SPACE.name()),
+            tokens.add(new Token("CHAR", snoop.group(TokenNames.SPACE.name()),
                 line, snoop.start()+1));
           }
           else if (snoop.group(TokenNames.PRINT.name()) != null || snoop.group(TokenNames.IF.name()) != null || snoop.group(TokenNames.WHILE.name()) != null || 
@@ -290,9 +290,11 @@ public class lexer {
     }
     if (err == 0) {
       System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
+      parser(tokens);
     }
     else {
-      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)");
+      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)\n"
+          + "INFO- Not skipping PARSE because of LEX errors.");
     }
     
     // for formatting multi-program lex

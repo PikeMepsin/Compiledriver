@@ -12,7 +12,50 @@ public class parser {
   
   public parser(ArrayList<Token> lexOutput) {
     stream = lexOutput;
+    int index = 0;
     
-    parseProgram(stream)
+    if (stream.size() < 3) {
+      System.out.println("PARSE ERROR: a program must at least consist of {}$");
+    }
+    parseProgram();
   }
+  
+  public boolean parseProgram() {
+    boolean isMatch = false;
+    System.out.println("PARSE: Program");
+    
+    tree.growBranch("Program");
+    parseBlock();
+    isMatch = match("$");
+    // for formatting
+    System.out.println();
+    
+    return isMatch;
+  }
+  
+  public boolean parseBlock() {
+    boolean isMatch = false;
+    // TODO
+    return isMatch;
+  }
+  
+  public boolean parseStatementList() {
+    boolean isMatch = false;
+    // TODO
+    return isMatch;
+  }
+  public boolean parseEOP() {
+    boolean isMatch = false;
+    // TODO
+    return isMatch;
+  }
+  
+  public boolean match(String expectedToken) {
+    boolean isMatch = false;
+    if (errors == 0) {
+      // TODO
+    }
+    return isMatch;
+  }
+  
 }
