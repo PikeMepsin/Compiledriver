@@ -18,14 +18,17 @@ public class parser {
   public parser(ArrayList<Token> lexOutput) {
     input = lexOutput;
     
-    if (input.size() < 3) {
-      System.out.println("PARSE ERROR: a program must at least consist of {}$");
-    }
-    parseProgram();
   }
   
   public boolean parseProgram() {
     boolean isMatch = false;
+    // flag for deciding whether or not to print
+    boolean validProg = false;
+    
+    if (input.size() < 3) {
+      System.out.println("PARSE ERROR: a program must at least consist of {}$");
+      errors++;
+    }
     if (verbose) {
       System.out.println("PARSE: Program");
     }
@@ -33,9 +36,11 @@ public class parser {
     tree.growBranch("Program");
     parseBlock();
     isMatch = match("EOP");
-    // for formatting
-    System.out.println();
-    
+    validProg = isMatch;
+    if (validProg) {
+      treeTrace();
+      // call for project 3 will go here
+    }
     return isMatch;
   }
   
@@ -60,6 +65,16 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: StatementList");
       }
+      if (input.get(index).name.equals("PRINT") || input.get(index).name.equals("ID") || input.get(index).name.equals("TYPEINT") ||
+          input.get(index).name.equals("TYPESTRING") || input.get(index).name.equals("TYPEBOOLEAN") || input.get(index).name.equals("WHILE") ||
+          input.get(index).name.equals("IF") || input.get(index).name.equals("LBRACE")) {
+        isMatch = parseStatement();
+        isMatch = parseStatementList();
+      }
+      else {
+        // epsilon production
+      }
+      tree.growBranch("StatementList");
       tree.climb();
     }
     return isMatch;
@@ -71,6 +86,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: Statement");
       }
+      tree.growBranch("Statement");
       tree.climb();
     }
     return isMatch;
@@ -82,6 +98,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: PrintStatement");
       }
+      tree.growBranch("PrintStatement");
       tree.climb();
     }
     return isMatch;
@@ -93,6 +110,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: AssignmentStatement");
       }
+      tree.growBranch("AssignmentStatement");
       tree.climb();
     }
     return isMatch;
@@ -104,6 +122,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: VarDecl");
       }
+      tree.growBranch("VarDecl");
       tree.climb();
     }
     return isMatch;
@@ -115,6 +134,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: WhileStatement");
       }
+      tree.growBranch("WhileStatement");
       tree.climb();
     }
     return isMatch;
@@ -126,6 +146,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: IfStatement");
       }
+      tree.growBranch("IfStatement");
       tree.climb();
     }
     return isMatch;
@@ -137,6 +158,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: Expr");
       }
+      tree.growBranch("Expr");
       tree.climb();
     }
     return isMatch;
@@ -148,6 +170,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: IntExpr");
       }
+      tree.growBranch("IntExpr");
       tree.climb();
     }
     return isMatch;
@@ -159,6 +182,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: StringExpr");
       }
+      tree.growBranch("StringExpr");
       tree.climb();
     }
     return isMatch;
@@ -170,6 +194,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: BooleanExpr");
       }
+      tree.growBranch("BooleanExpr");
       tree.climb();
     }
     return isMatch;
@@ -181,6 +206,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: Id");
       }
+      tree.growBranch("Id");
       tree.climb();
     }
     return isMatch;
@@ -192,6 +218,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: CharList");
       }
+      tree.growBranch("CharList");
       tree.climb();
     }
     return isMatch;
@@ -203,6 +230,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: Type");
       }
+      tree.growBranch("Type");
       tree.climb();
     }
     return isMatch;
@@ -214,6 +242,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: Char");
       }
+      tree.growBranch("Char");
       tree.climb();
     }
     return isMatch;
@@ -225,6 +254,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: Space");
       }
+      tree.growBranch("Space");
       tree.climb();
     }
     return isMatch;
@@ -236,6 +266,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: Digit");
       }
+      tree.growBranch("Digit");
       tree.climb();
     }
     return isMatch;
@@ -247,6 +278,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: BoolOp");
       }
+      tree.growBranch("BoolOp");
       tree.climb();
     }
     return isMatch;
@@ -258,6 +290,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: BoolVal");
       }
+      tree.growBranch("BoolVal");
       tree.climb();
     }
     return isMatch;
@@ -269,6 +302,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: IntOp");
       }
+      tree.growBranch("IntOp");
       tree.climb();
     }
     return isMatch;
@@ -297,6 +331,10 @@ public class parser {
       }
     }
     return isMatch;
+  }
+  
+  public void treeTrace() {
+    tree.printCST(tree.root, 0);
   }
   
 }

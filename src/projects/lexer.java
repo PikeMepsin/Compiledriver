@@ -290,7 +290,9 @@ public class lexer {
     }
     if (err == 0) {
       System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
-      parser(tokens);
+      System.out.println("INFO - Parsing Program " + progNum);
+      parser parse = new parser(tokens);
+      parse.parseProgram();
     }
     else {
       System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)\n"

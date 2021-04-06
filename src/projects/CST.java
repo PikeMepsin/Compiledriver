@@ -48,7 +48,7 @@ public class CST {
     String formatTree = "";
     
     for (int x=0; x<depth; x++) {
-      formatTree += "-";
+      formatTree = formatTree + "-";
     }
     
     // handles branch nodes (nodes with children)
