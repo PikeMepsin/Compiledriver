@@ -4,7 +4,7 @@
  *
  */
 
-public static class Token {
+public class Token {
     //class variables
     public String name;
     public String lexeme;

@@ -1,249 +1,301 @@
-/* This is the beginning of the lexer
- * Compilers CMPT 432
- * @author Mike Pepsin
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
+import java.util.*;
+import java.io.*;
+import java.lang.Math;
+
+/**
+ * Project 1 for Compilers: The Lexer
+ * Professor Alan Labouseur
+ * CMPT432
+ * @author Michael Pepsin
  */
 
-import java.util.*;
-
 public class lexer {
+  
+  public static enum TokenNames {
+    //accepted tokens and their naming convention
+    PRINT("print"),
+    WHILE("while"),
+    IF("if"),
+    TYPEINT("int"),
+    TYPESTRING("string"),
+    TYPEBOOLEAN("boolean"),
+    BOOLVALT("true"),
+    BOOLVALF("false"),
+    ID("[a-z]"),
+    EOP("[$]"),
+    BOOLEQ("=="),
+    BOOLINEQ("!="),
+    QUOTE("\""),
+    INCROP("[+]"),
+    ASSIGNOP("="),
+    OPENPAREN("[(]"),
+    CLOSEPAREN("[)]"),
+    LBRACE("[{]"),
+    RBRACE("[}]"),
+    NUM("[0-9]"),
+    CHAR("[a-z]"),
+    VALIDCOMMENT("(?<=)\\/\\*.*?(?=)\\*\\/"),
+    INVALIDCOMMENT("(/\\*)"),
+    CRLF("[\\r\\n]+"),
+    SPACE(" "),
+    WHITESPACE("[\\s]+"),
+    ERR(".");
+    
+    public final String pattern;
+    TokenNames(String pattern) {
+      this.pattern = pattern;
+    }
+  }
   public static void main(String[] args) {
-    
-    //hashmap for matching accepted states to their symbols
-    HashMap<Integer, String> tokenMatch = new HashMap<>();
-    tokenMatch.put(9, "PRINT");
-    tokenMatch.put(10, "WHILE");
-    tokenMatch.put(11, "IF");
-    tokenMatch.put(12, "INT");
-    tokenMatch.put(13, "STRING");
-    tokenMatch.put(14, "BOOLEAN");
-    tokenMatch.put(15, "BOOL_T");
-    tokenMatch.put(16, "BOOL_F");
-    tokenMatch.put(17, "CHAR");
-    //TODO: Digits
-    
-    //hashmap for determining which column to use in the dfa matrix during lex
-    HashMap<String, Integer> dfaColumns = new HashMap<>();
-    dfaColumns.put("a", 0);
-    dfaColumns.put("b", 1);
-    dfaColumns.put("c", 2);
-    dfaColumns.put("d", 3);
-    dfaColumns.put("e", 4);
-    dfaColumns.put("f", 5);
-    dfaColumns.put("g", 6);
-    dfaColumns.put("h", 7);
-    dfaColumns.put("i", 8);
-    dfaColumns.put("j", 9);
-    dfaColumns.put("k", 10);
-    dfaColumns.put("l", 11);
-    dfaColumns.put("m", 12);
-    dfaColumns.put("n", 13);
-    dfaColumns.put("o", 14);
-    dfaColumns.put("p", 15);
-    dfaColumns.put("q", 16);
-    dfaColumns.put("r", 17);
-    dfaColumns.put("s", 18);
-    dfaColumns.put("t", 19);
-    dfaColumns.put("u", 20);
-    dfaColumns.put("u", 21);
-    dfaColumns.put("w", 22);
-    dfaColumns.put("x", 23);
-    dfaColumns.put("y", 24);
-    dfaColumns.put("z", 25);
-    dfaColumns.put("0", 26);
-    dfaColumns.put("1", 27);
-    dfaColumns.put("2", 28);
-    dfaColumns.put("3", 29);
-    dfaColumns.put("4", 30);
-    dfaColumns.put("5", 31);
-    dfaColumns.put("6", 32);
-    dfaColumns.put("7", 33);
-    dfaColumns.put("8", 34);
-    dfaColumns.put("9", 35);
-    dfaColumns.put("{", 36);
-    dfaColumns.put("}", 37);
-    dfaColumns.put("(", 38);
-    dfaColumns.put(")", 39);
-    dfaColumns.put("!", 40);
-    dfaColumns.put("=", 41);
-    dfaColumns.put("+", 42);
-    dfaColumns.put("\"", 43);
-    dfaColumns.put("/", 44);
-    dfaColumns.put("*", 45);
-    dfaColumns.put("$", 46);
-    dfaColumns.put(" ", 47);
-    
-    //variables for lexing
+    ArrayList<Token> tokens = new ArrayList<>();
     Scanner lex = new Scanner(System.in);
-    String codeFragment = "";
-    ArrayList<Token> tokenStream = new ArrayList<>();
     
-    //counters
+    // counters
     int progCounter = 1;
     int warnings = 0;
     int errors = 0;
-    int state = 1;
+    int line = 1;
     
-    //the following declarations are flags that we'll use later
+    // flags
     boolean inQuotes = false;
     boolean inComments = false;
-    int inBrackets = 0;
-    int inParens = 0;
-        
-    int dfa[][] = {/*a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  0  1  2  3  4  5  6  7  8  9  {  }  (  )  !  =  +  "  /  *  $  space*/
-    /* state 0 */   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    /* state 1 */   {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    /* state 2 */   {3, 0, 0, 0, 0,11, 0, 3, 0, 0, 0, 0, 0, 3, 3, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 3 */   {0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 5, 0, 0, 4, 0,12, 4, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 4 */   {0, 0, 0, 0,15, 0, 0, 0, 5, 0, 0, 5, 0, 5, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 5 */   {0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 6 */   {0, 0, 0, 0, 7, 0,13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 7 */   {8, 0, 0, 0,16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-    /* state 8 */   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}};
+    boolean printed = false;
     
-    //position variables
-    int line = 1;
-    int currentPos = 0;
-    int lastPos = currentPos + 1;    
-    
-    //rebuild the input as a String
-    //this implementation means that lines are read one-at-a-time, so even with good formatting,
-    //tokens cannot exist on separate lines.
-    //grab the line loop
-    StringBuffer sb = new StringBuffer();
+    // this is the lex loop, reading line by line from a text file
     while (lex.hasNextLine()) {
-      sb.append(lex.nextLine());
-      codeFragment = sb.toString();
-      String tokenSoFar = "";
-      int pos = 0;
+      printed = false;
+      String input = lex.nextLine();
       
-      //lex the line loop
-      while (sb.capacity() > 0) {
-        String next = codeFragment.substring(lastPos-1, lastPos);
-        tokenSoFar += next;
-        System.out.println(codeFragment + " " + tokenSoFar);
-        if (dfaColumns.containsKey(next)) {
-          int col = dfaColumns.get(next).intValue();
-          state = dfa[state][col];
-          System.out.println(col + " " + state);
-          if (state > 0) {
-            if (state == 2) { //2 is the accepted state for ID
-              System.out.println("got here");
-              Token token = new Token("ID", tokenSoFar, line, pos);
-              
-              //next character doesn't follow the path to a keyword, so we can emit it as an ID
-              int temp = dfaColumns.get(codeFragment.substring(lastPos, lastPos+1)).intValue();
-              if (dfa[state][temp] <= 0) {
-                tokenStream.add(token);
-                pos++;
-                sb.delete(0, lastPos);
-                codeFragment = sb.toString();
-                System.out.println(codeFragment);
-                lastPos++;
-              }
-              //else is does follow the path to a keyword so we keep going
-              else {
-                lastPos++;
-              }
-            }
-            //accepted states for keywords
-            else if (state >= 9 && state < 17) {
-              Token token = new Token(tokenMatch.get(state), tokenSoFar, line, pos);
-              tokenStream.add(token);
-              pos += tokenMatch.get(state).length();
-              sb.delete(0, lastPos);
-              codeFragment = sb.toString();
-              System.out.println(codeFragment);
-              printStream(tokenStream, progCounter);
-              tokenSoFar = "";
-              lastPos = 1;
-              state = 1;
-            }
-            else {
-              System.out.println("got here 2");
-              col = dfaColumns.get(codeFragment.substring(lastPos, lastPos+1)).intValue();
-              state = dfa[state][col];
-              lastPos++;
-              System.out.println(col + " " + state);
-            }
+      // construct the pattern
+      StringBuffer patternBuilder = new StringBuffer();
+      for (TokenNames tokenName : TokenNames.values()) {
+        patternBuilder.append(String.format("|(?<%s>%s)", tokenName.name(), tokenName.pattern));
+      }
+      
+      // initialize pattern and matcher objects
+      Pattern lexemes = Pattern.compile(patternBuilder.substring(1), Pattern.DOTALL);
+      Matcher snoop = lexemes.matcher(input);
+      
+      while(snoop.find()) {
+    	//for testing purposes
+        //System.out.println("snoop found");
+        //System.out.println(snoop.group());
+        
+        
+        if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
+          // process whitespace, do nothing with it
+        }
+        else if (snoop.group(TokenNames.EOP.name()) != null) {
+          // the EOP symbol is the be-all end-all, we check for it early
+          tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
+              line, snoop.start()+1));
+          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
+          printed = true;
+          progCounter++;
+          tokens.clear();
+          errors = 0;
+          warnings = 0;
+        }
+        else if (inComments) {
+          // you're in a comment, silly, nothing is going to happen
+          // seriously though, this is the endpoint only if there was an unclosed comment block
+          // that's what makes it different from the next
+        }
+        else if (snoop.group(TokenNames.VALIDCOMMENT.name()) != null) {
+          // process comment, do nothing with it
+        }
+        else if (snoop.group(TokenNames.INVALIDCOMMENT.name()) != null) {
+          inComments = true;
+        }
+        else if (inQuotes) {
+          // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
+          // they have identical regex but CHAR doesn't work for some reason
+          // anyway, this processes anything in quotes as an error if its not a "char" or another quote
+          if (snoop.group(TokenNames.ID.name()) != null) {
+            tokens.add(new Token("CHAR", snoop.group(TokenNames.ID.name()),
+                line, snoop.start()+1));
           }
-          else if (state == -1) {
-            Token token = new Token("Symbol", tokenSoFar, line, pos);
-            tokenStream.add(token);
-            pos += tokenSoFar.length();
-            sb.delete(0, lastPos);
-            codeFragment = sb.toString();
-            lastPos = 1;
+          else if (snoop.group(TokenNames.QUOTE.name()) != null) {
+            tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
+                line, snoop.start()+1));
+            inQuotes = false;
+          }
+          else if (snoop.group(TokenNames.CRLF.name()) != null) {
+            // doesn't work
+            // System.out.println("CRLF found");
+            tokens.add(new Token("ERROR", "\n", line, snoop.start()+1));
+          }
+          else if (snoop.group(TokenNames.SPACE.name()) != null) {
+            tokens.add(new Token("SPACE", snoop.group(TokenNames.SPACE.name()),
+                line, snoop.start()+1));
+          }
+          else if (snoop.group(TokenNames.PRINT.name()) != null || snoop.group(TokenNames.IF.name()) != null || snoop.group(TokenNames.WHILE.name()) != null || 
+              snoop.group(TokenNames.TYPEINT.name()) != null || snoop.group(TokenNames.TYPESTRING.name()) != null || snoop.group(TokenNames.TYPEBOOLEAN.name()) != null || 
+              snoop.group(TokenNames.BOOLVALT.name()) != null || snoop.group(TokenNames.BOOLVALF.name()) != null) {
+            // this is admittedly a bruce force tactic, but it tokenizes keywords without accepting invalid characters
+            String keyword = snoop.group();
+            int index = snoop.start()+1;
+            for (int z=0; z<keyword.length(); z++) {
+              tokens.add(new Token("CHAR", keyword.substring(z, z+1), line, index+z));
+            }
           }
           else {
-            System.out.println("got here 3");
-            col = dfaColumns.get(codeFragment.substring(lastPos, lastPos+1)).intValue();
-            state = dfa[state][col];
-            lastPos++;
-            System.out.println(col + " " + state);
+            tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
+            errors++;
           }
+        }
+        // keyword matching
+        else if (snoop.group(TokenNames.PRINT.name()) != null) {
+          tokens.add(new Token("PRINT", snoop.group(TokenNames.PRINT.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.WHILE.name()) != null) {
+          tokens.add(new Token("WHILE", snoop.group(TokenNames.WHILE.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.IF.name()) != null) {
+          tokens.add(new Token("IF", snoop.group(TokenNames.IF.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.TYPEINT.name()) != null) {
+          tokens.add(new Token("TYPEINT", snoop.group(TokenNames.TYPEINT.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.TYPESTRING.name()) != null) {
+          tokens.add(new Token("TYPESTRING", snoop.group(TokenNames.TYPESTRING.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.TYPEBOOLEAN.name()) != null) {
+          tokens.add(new Token("TYPEBOOLEAN", snoop.group(TokenNames.TYPEBOOLEAN.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.BOOLVALT.name()) != null) {
+          tokens.add(new Token("BOOLVALT", snoop.group(TokenNames.BOOLVALT.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.BOOLVALF.name()) != null) {
+          tokens.add(new Token("BOOLVALF", snoop.group(TokenNames.BOOLVALF.name()),
+              line, snoop.start()+1));
+        }
+        // ID matching
+        else if (snoop.group(TokenNames.ID.name()) != null) {
+          if (inQuotes) {
+            tokens.add(new Token("CHAR", snoop.group(TokenNames.ID.name()),
+                line, snoop.start()+1));
+          }
+          else {
+            tokens.add(new Token("ID", snoop.group(TokenNames.ID.name()),
+                line, snoop.start()+1));
+          }
+        }
+        // symbol, num, and char matching
+        else if (snoop.group(TokenNames.BOOLEQ.name()) != null) {
+        tokens.add(new Token("BOOLEQ", snoop.group(TokenNames.BOOLEQ.name()),
+            line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.BOOLINEQ.name()) != null) {
+          tokens.add(new Token("BOOLINEQ", snoop.group(TokenNames.BOOLINEQ.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.ASSIGNOP.name()) != null) {
+          tokens.add(new Token("ASSIGNOP", snoop.group(TokenNames.ASSIGNOP.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.INCROP.name()) != null) {
+          tokens.add(new Token("INCROP", snoop.group(TokenNames.INCROP.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.QUOTE.name()) != null) {
+          if (!inQuotes) {
+            inQuotes = true;
+          }
+          else {
+            inQuotes = false;
+          }
+          tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.OPENPAREN.name()) != null) {
+          tokens.add(new Token("OPENPAREN", snoop.group(TokenNames.OPENPAREN.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.CLOSEPAREN.name()) != null) {
+          tokens.add(new Token("CLOSEPAREN", snoop.group(TokenNames.CLOSEPAREN.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.LBRACE.name()) != null) {
+          tokens.add(new Token("LBRACE", snoop.group(TokenNames.LBRACE.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.RBRACE.name()) != null) {
+          tokens.add(new Token("RBRACE", snoop.group(TokenNames.RBRACE.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.NUM.name()) != null) {
+          tokens.add(new Token("NUM", snoop.group(TokenNames.NUM.name()),
+              line, snoop.start()+1));
+        }
+        else if (snoop.group(TokenNames.CHAR.name()) != null) {
+          tokens.add(new Token("CHAR", snoop.group(TokenNames.CHAR.name()),
+              line, snoop.start()+1));
+        }
+        // anything that we haven't caught yet is not part of the grammar, it is added as an error token
+        // error tokens are handled slightly differently later for the sake of the output
+        else if (snoop.group(TokenNames.ERR.name()) != null) {
+          tokens.add(new Token("ERROR", snoop.group(TokenNames.ERR.name()),
+              line, snoop.start()+1));
+          errors++;
           
         }
-        
-        /*currentPos = lastPos;
-        lastPos++;
-        codeFragment = sb.toString();*/
-      }
-      
-      line++;
-    }
-    
-    printStream(tokenStream, progCounter);
-    /*
-    while (lex.hasNextLine()) {
-      while (lex.hasNext()) {
-        String next = lex.next();
-        pos++;
-        //Unrecognized character error
-        if (!dfaColumns.containsKey(next)) {
-          errors++;
-          printStream(tokenStream);
-          System.out.println("Lex terminated with " + errors + "error(s) at [" + line + "," + pos + "]");
-          System.out.println("ERROR: Unrecognized character " + next);
-          // TODO remove break, move on to next program once error is found after 1 is working
-          break;
-        }
-        else {
-          if (dfaColumns.getValue(next)) {
-            String tempType = "ID";
-          } 
-        }
-        
-        codeFragment += next;
-        System.out.println(codeFragment);
       }
       line++;
-      pos = 0;
     }
-    */
-  }
-  
-  public static class Token {
-    //class variables
-    public String type;
-    public String lexeme;
-    int lineNum;
-    int position;
+    // this statement catches any program(s) that don't end in EOP
+    if (!printed && !tokens.isEmpty()) {
+      printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
+    }
     
-    public Token(String type, String lexeme, int lineNum, int position) {
-      this.type = type;
-      this.lexeme = lexeme;
-      this.lineNum = lineNum;
-      this.position = position;
-    }
   }
   
-  public static void printStream(ArrayList tokens, int progNum) {
+  public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn, boolean openQ, boolean openC) {
+    // print method, called after EOP is reached, or at the end of input otherwise
+    String output = "";
     System.out.println("INFO - Compilation started");
     System.out.println("INFO - Compiling Program " + progNum);
-    for (Object token: tokens) {
-      /*String output = String.format("DEBUG - Lexer - %s [ %s ] found at (%d:%d)", token.type, token.lexeme, token.lineNum, token.position);
-      System.out.println(output);*/
-      System.out.println(token);
+    for (Token token: tokens) {
+      output = String.format("DEBUG - Lexer - %s [ %s ] found at (%d:%d)", token.name, token.lexeme, token.lineNum, token.position);
+      if (token.name == "ERROR") {
+        output = String.format("ERROR at line (%d:%d) - %s is not an accepted character", token.lineNum, token.position, token.lexeme);
+      }
+      System.out.println(output);
     }
+    
+    if (openQ) {
+      System.out.println("Program ended inside a quote");
+      warn++;
+    }
+    if (openC) {
+      System.out.println("Program ended inside comments");
+      warn++;
+    }
+    Token lastToken = tokens.get(tokens.size()-1);
+    String lastLexeme = lastToken.lexeme;
+    if (!lastLexeme.equals("$")) {
+      System.out.println("No end-of-program symbol found");
+      warn++;
+    }
+    if (err == 0) {
+      System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
+    }
+    else {
+      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)");
+    }
+    
+    // for formatting multi-program lex
+    System.out.println();
   }
 }
