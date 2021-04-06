@@ -4,6 +4,10 @@ public class parser {
   
   int index = 0;
   int errors = 0;
+  
+  // flag for printing in verbose mode
+  boolean verbose = true;
+  
   ArrayList<Token> input = new ArrayList<Token>();
   CST tree = new CST();
   
@@ -22,7 +26,9 @@ public class parser {
   
   public boolean parseProgram() {
     boolean isMatch = false;
-    System.out.println("PARSE: Program");
+    if (verbose) {
+      System.out.println("PARSE: Program");
+    }
     
     tree.growBranch("Program");
     parseBlock();
@@ -36,9 +42,14 @@ public class parser {
   public boolean parseBlock() {
     boolean isMatch = false;
     if (errors == 0) {
-      match("LBRACE");
+      if (verbose) {
+        System.out.println("PARSE: Block");
+      }
+      tree.growBranch("Block");
+      isMatch = match("LBRACE");
       parseStatementList();
       isMatch = match("RBRACE");
+      tree.climb();
     }
     return isMatch;
   }
@@ -46,7 +57,10 @@ public class parser {
   public boolean parseStatementList() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: StatementList");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -54,7 +68,10 @@ public class parser {
   public boolean parseStatement() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: Statement");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -62,7 +79,10 @@ public class parser {
   public boolean parsePrintStatement() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: PrintStatement");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -70,7 +90,10 @@ public class parser {
   public boolean parseAssignmentStatement() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: AssignmentStatement");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -78,7 +101,10 @@ public class parser {
   public boolean parseVarDecl() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: VarDecl");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -86,7 +112,10 @@ public class parser {
   public boolean parseWhileStatement() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: WhileStatement");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -94,7 +123,10 @@ public class parser {
   public boolean parseIfStatement() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: IfStatement");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -102,7 +134,10 @@ public class parser {
   public boolean parseExpr() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: Expr");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -110,7 +145,10 @@ public class parser {
   public boolean parseIntExpr() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: IntExpr");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -118,7 +156,10 @@ public class parser {
   public boolean parseStringExpr() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: StringExpr");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -126,7 +167,10 @@ public class parser {
   public boolean parseBooleanExpr() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: BooleanExpr");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -134,7 +178,10 @@ public class parser {
   public boolean parseId() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: Id");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -142,7 +189,10 @@ public class parser {
   public boolean parseCharList() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: CharList");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -150,7 +200,10 @@ public class parser {
   public boolean parseType() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: Type");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -158,7 +211,10 @@ public class parser {
   public boolean parseChar() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: Char");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -166,7 +222,10 @@ public class parser {
   public boolean parseSpace() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: Space");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -174,7 +233,10 @@ public class parser {
   public boolean parseDigit() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: Digit");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -182,7 +244,10 @@ public class parser {
   public boolean parseBoolOp() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: BoolOp");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -190,7 +255,10 @@ public class parser {
   public boolean parseBoolVal() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: BoolVal");
+      }
+      tree.climb();
     }
     return isMatch;
   }
@@ -198,7 +266,10 @@ public class parser {
   public boolean parseIntOp() {
     boolean isMatch = false;
     if (errors == 0) {
-      
+      if (verbose) {
+        System.out.println("PARSE: IntOp");
+      }
+      tree.climb();
     }
     return isMatch;
   }
