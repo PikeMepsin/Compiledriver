@@ -5,10 +5,7 @@ Source language: Java
 
 Author: Michael Pepsin
 
-!--------------------------------------------------------!
-GRADE THE WORK ON THE MAIN BRANCH
-Work will be done on branches and merged into main
-!--------------------------------------------------------!
+GRADE WORK ON THE MAIN BRANCH: projects will be done on branches and merged into main
 
 To compile and run code from this repo:
 1. Using Git Bash, clone my repository using the command
