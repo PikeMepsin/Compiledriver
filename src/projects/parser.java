@@ -1,8 +1,15 @@
 import java.util.ArrayList;
 
+/**
+ * Project 2 for Compilers: The Parser
+ * Professor Alan Labouseur
+ * CMPT 432
+ * @author Mike
+ */
+
 public class parser {
   
-  int index = 0;
+  int index = 0; // arraylist pointer
   int errors = 0;
   
   // flag for printing in verbose mode
@@ -20,6 +27,7 @@ public class parser {
     
   }
   
+  // start here, by parsing a program (called from Compiledriver.java)
   public boolean parseProgram() {
     boolean isMatch = false;
     // flag for deciding whether or not to print
@@ -48,6 +56,7 @@ public class parser {
     return isMatch;
   }
   
+  // block
   public boolean parseBlock() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -63,6 +72,7 @@ public class parser {
     return isMatch;
   }
   
+  // statement list
   public boolean parseStatementList() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -84,6 +94,7 @@ public class parser {
     return isMatch;
   }
   
+  // statement
   public boolean parseStatement() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -91,6 +102,8 @@ public class parser {
         System.out.println("PARSE: Statement");
       }
       tree.growBranch("Statement");
+      
+      // handle the various statement modes
       if (input.get(index).name.equals("PRINT")) {
         isMatch = parsePrintStatement();
       }
@@ -114,6 +127,7 @@ public class parser {
     return isMatch;
   }
   
+  // print statement
   public boolean parsePrintStatement() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -130,6 +144,7 @@ public class parser {
     return isMatch;
   }
   
+  // assignment statement
   public boolean parseAssignmentStatement() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -145,6 +160,7 @@ public class parser {
     return isMatch;
   }
   
+  // variable declaration
   public boolean parseVarDecl() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -159,6 +175,7 @@ public class parser {
     return isMatch;
   }
   
+  // while loop
   public boolean parseWhileStatement() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -174,6 +191,7 @@ public class parser {
     return isMatch;
   }
   
+  // if statement
   public boolean parseIfStatement() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -189,6 +207,7 @@ public class parser {
     return isMatch;
   }
   
+  // parse expressions into smaller expressions
   public boolean parseExpr() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -196,15 +215,20 @@ public class parser {
         System.out.println("PARSE: Expr");
       }
       tree.growBranch("Expr");
+      
+      // integer expressions
       if (input.get(index).name.equals("NUM")) {
         isMatch = parseIntExpr();
       }
+      // boolean expressions
       else if (input.get(index).name.equals("OPENPAREN") || input.get(index).name.equals("BOOLVALT") || input.get(index).name.equals("BOOLVAlF")) {
         isMatch = parseBooleanExpr();
       }
+      // string expressions
       else if (input.get(index).name.equals("QUOTE")) {
         isMatch = parseStringExpr();
       }
+      // IDs
       else {
         isMatch = parseId();
       }
@@ -214,6 +238,7 @@ public class parser {
     return isMatch;
   }
   
+  // integer expressions
   public boolean parseIntExpr() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -221,7 +246,11 @@ public class parser {
         System.out.println("PARSE: IntExpr");
       }
       tree.growBranch("IntExpr");
+      
+      // a digit, alone in an unforgiving compiler
       parseDigit();
+      
+      // digit + Expr
       if (input.get(index).name.equals("INCROP")) {
         isMatch = match("INCROP");
         parseExpr();
@@ -231,6 +260,7 @@ public class parser {
     return isMatch;
   }
   
+  // string expressions
   public boolean parseStringExpr() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -246,6 +276,7 @@ public class parser {
     return isMatch;
   }
 
+  // boolean expressions
   public boolean parseBooleanExpr() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -253,6 +284,8 @@ public class parser {
         System.out.println("PARSE: BooleanExpr");
       }
       tree.growBranch("BooleanExpr");
+      
+      // boolean expressions in parens()
       if (input.get(index).name.equals("OPENPAREN")) {
         isMatch = match("OPENPAREN");
         parseExpr();
@@ -260,6 +293,7 @@ public class parser {
         parseExpr();
         isMatch = match("CLOSEPAREN");
       }
+      // boolean values
       else {
         parseBoolVal();
       }
@@ -268,6 +302,7 @@ public class parser {
     return isMatch;
   }
   
+  // parse IDs
   public boolean parseId() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -281,6 +316,7 @@ public class parser {
     return isMatch;
   }
   
+  // character list
   public boolean parseCharList() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -289,6 +325,7 @@ public class parser {
       }
       tree.growBranch("CharList");
     }
+    // character
     if (input.get(index).name.equals("CHAR")) {
       if (errors == 0) {
         if (verbose) {
@@ -300,6 +337,7 @@ public class parser {
         isMatch = parseCharList();
       }
     }
+    // space
     else if (input.get(index).name.equals("SPACE")) {
       if (errors == 0) {
         if (verbose) {
@@ -318,6 +356,7 @@ public class parser {
     return isMatch;
   }
   
+  // parse types, int string and bool
   public boolean parseType() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -325,12 +364,16 @@ public class parser {
         System.out.println("PARSE: Type");
       }
       tree.growBranch("Type");
+      
+      // int declaration
       if (input.get(index).name.equals("TYPEINT")) {
         isMatch = match("TYPEINT");
       }
+      // boolean declaration
       else if (input.get(index).name.equals("TYPEBOOLEAN")) {
         isMatch = match("TYPEBOOLEAN");
       }
+      // string declaration
       else {
         isMatch = match("TYPESTRING");
       }
@@ -339,6 +382,7 @@ public class parser {
     return isMatch;
   }
   
+  // parse numbers
   public boolean parseDigit() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -352,6 +396,7 @@ public class parser {
     return isMatch;
   }
 
+  // bool ops, equality and inequality
   public boolean parseBoolOp() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -359,9 +404,12 @@ public class parser {
         System.out.println("PARSE: BoolOp");
       }
       tree.growBranch("BoolOp");
+      
+      // ==
       if (input.get(index).name.equals("BOOLEQ")) {
         isMatch = match("BOOLEQ");
       }
+      // !=
       else {
         isMatch = match("BOOLINEQ");
       }
@@ -370,6 +418,7 @@ public class parser {
     return isMatch;
   }
 
+  // bool values, true and false terminals
   public boolean parseBoolVal() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -377,9 +426,12 @@ public class parser {
         System.out.println("PARSE: BoolVal");
       }
       tree.growBranch("BoolVal");
+      
+      // true
       if (input.get(index).name.equals("BOOLVALT")) {
         isMatch = match("BOOLVALT");
       }
+      // false
       else {
         isMatch = match("BOOLVALF");
       }
@@ -389,7 +441,7 @@ public class parser {
   }
 
 
-  
+  // match method for checking expected vs. actual
   public boolean match(String expectedToken) {
     boolean isMatch = false;
     if (errors == 0) {
@@ -398,10 +450,12 @@ public class parser {
         isMatch = true;
       }
       
+      // prevents index out-of-bounds and moves pointer to next token
       if (index < input.size()-1) {
         index++;
       }
       
+      // catch errors, expected vs. actual tokens
       if (!isMatch) {
         String errMessage = String.format("ERROR at (%d:%d) : PARSER expected %s, found %s", input.get(index).lineNum, input.get(index).position, expectedToken, input.get(index).lexeme);
         System.out.println(errMessage);
@@ -411,6 +465,7 @@ public class parser {
     return isMatch;
   }
   
+  // print method for errorless parse
   public void treeTrace() {
     tree.printCST(tree.root, 0);
   }
