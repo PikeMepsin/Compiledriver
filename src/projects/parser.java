@@ -80,6 +80,7 @@ public class parser {
         System.out.println("PARSE: StatementList");
       }
       tree.growBranch("StatementList");
+      
       if (input.get(index).name.equals("PRINT") || input.get(index).name.equals("ID") || input.get(index).name.equals("TYPEINT") ||
           input.get(index).name.equals("TYPESTRING") || input.get(index).name.equals("TYPEBOOLEAN") || input.get(index).name.equals("WHILE") ||
           input.get(index).name.equals("IF") || input.get(index).name.equals("LBRACE")) {
@@ -108,7 +109,7 @@ public class parser {
         isMatch = parsePrintStatement();
       }
       else if (input.get(index).name.equals("ID")) {
-        isMatch = parseId();
+        isMatch = parseAssignmentStatement();
       }
       else if (input.get(index).name.equals("TYPEINT") || input.get(index).name.equals("TYPESTRING") || input.get(index).name.equals("TYPEBOOLEAN")) {
         isMatch = parseVarDecl();
