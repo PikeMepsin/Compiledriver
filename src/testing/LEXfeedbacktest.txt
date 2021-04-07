@@ -1,0 +1,3 @@
+{intfintif=2}$
+
+print("print/*this shouldnt appear*/")$
