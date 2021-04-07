@@ -13,7 +13,7 @@ import java.lang.Math;
  * @author Michael Pepsin
  */
 
-public class lexer1 {
+public class Compiledriver {
   
   public static enum TokenNames {
     //accepted tokens and their naming convention
@@ -261,21 +261,6 @@ public class lexer1 {
     
   }
   
-  public static class Token {
-    //class variables
-    public String name;
-    public String lexeme;
-    public int lineNum;
-    public int position;
-    
-    public Token(String name, String lexeme, int lineNum, int position) {
-      this.name = name;
-      this.lexeme = lexeme;
-      this.lineNum = lineNum;
-      this.position = position;
-    }
-  }
-  
   public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn, boolean openQ, boolean openC) {
     // print method, called after EOP is reached, or at the end of input otherwise
     String output = "";
@@ -305,9 +290,13 @@ public class lexer1 {
     }
     if (err == 0) {
       System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
+      System.out.println("INFO - Parsing Program " + progNum);
+      parser parse = new parser(tokens);
+      parse.parseProgram();
     }
     else {
-      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)");
+      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)\n"
+          + "INFO- Skipping PARSE because of LEXER errors.");
     }
     
     // for formatting multi-program lex

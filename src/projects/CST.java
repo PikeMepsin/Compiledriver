@@ -1,5 +1,20 @@
 import java.util.ArrayList;
 
+class CSTNode {
+  public String token = "";
+  
+  ArrayList<CSTNode> tree = new ArrayList<CSTNode>();
+  
+  CSTNode parent = null;
+  
+  public CSTNode() {
+    // the default constructor
+  }
+  
+  public CSTNode(String tok) {
+    this.token = tok;
+  }
+}
 
 public class CST {
   CSTNode root = null;
@@ -9,10 +24,16 @@ public class CST {
     // the default constructor
   }
   
+  // adds a leaf node, this will be our terminal symbol
+  public void sproutLeaf(String name) {
+    CSTNode node = new CSTNode(name);
+    node.parent = this.pointer;
+    this.pointer.tree.add(node);
+  }
   
-  
-  public void newBranch(String name, int lline, int ppos) {
-    CSTNode node = new CSTNode(name, lline, ppos);
+  // adds a branch node, these act as productions and nonterminals
+  public void growBranch(String name) {
+    CSTNode node = new CSTNode(name);
     if(this.root == null) {
       this.root = node;
     }
@@ -22,23 +43,35 @@ public class CST {
     }
     this.pointer = node;
   }
-}
-
-
-class CSTNode {
-  // This is the important thing but...
-  public String token = "";
-  // I care about the position for error reporting purposes.
-  public int lineNum = 0;
-  public int position = 0;
   
-  ArrayList<CSTNode> tree = new ArrayList<CSTNode>();
+  public void printCST(CSTNode node, int depth) {
+    String formatTree = "";
+    
+    for (int x=0; x<depth; x++) {
+      formatTree = formatTree + "-";
+    }
+    
+    // handles branch nodes (nodes with children)
+    if (node.tree.size() > 0) {
+      formatTree += "<" + node.token + ">";
+      System.out.println(formatTree);
+      depth++;
+      
+      for (int y=0; y<node.tree.size(); y++) {
+        printCST(node.tree.get(y), depth);
+      }
+    }
+    // handles leaf nodes
+    else {
+      formatTree += "[ " + node.token + " ]";
+      System.out.println(formatTree);
+    }
+  }
   
-  CSTNode parent = null;
-  
-  public CSTNode(String tok, int line, int pos) {
-    this.token = tok;
-    this.lineNum = line;
-    this.position = pos;
+  // climb the tree, hence the recursion
+  public void climb() {
+    if (this.pointer.parent != null) {
+      this.pointer = this.pointer.parent;
+    }
   }
 }
