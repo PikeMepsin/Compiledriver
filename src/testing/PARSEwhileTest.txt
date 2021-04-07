@@ -1,0 +1,6 @@
+{
+  while false {
+    print(6)
+  }
+}
+$

@@ -10,10 +10,10 @@ import java.lang.Math;
  * Project 1 for Compilers: The Lexer
  * Professor Alan Labouseur
  * CMPT432
- * @author PikeMepsin
+ * @author Michael Pepsin
  */
 
-public class lexer1 {
+public class Compiledriver {
   
   public static enum TokenNames {
     //accepted tokens and their naming convention
@@ -40,6 +40,8 @@ public class lexer1 {
     CHAR("[a-z]"),
     VALIDCOMMENT("(?<=)\\/\\*.*?(?=)\\*\\/"),
     INVALIDCOMMENT("(/\\*)"),
+    CRLF("[\\r\\n]+"),
+    SPACE(" "),
     WHITESPACE("[\\s]+"),
     ERR(".");
     
@@ -83,11 +85,12 @@ public class lexer1 {
         //System.out.println("snoop found");
         //System.out.println(snoop.group());
         
+        
         if (snoop.group(TokenNames.WHITESPACE.name()) != null) {
           // process whitespace, do nothing with it
         }
         else if (snoop.group(TokenNames.EOP.name()) != null) {
-          // the EOP symbol is the be-all end-all, we check for it first
+          // the EOP symbol is the be-all end-all, we check for it early
           tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
               line, snoop.start()+1));
           printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
@@ -96,13 +99,6 @@ public class lexer1 {
           tokens.clear();
           errors = 0;
           warnings = 0;
-        }
-        else if (inQuotes && !(snoop.group(TokenNames.ID.name()) != null || snoop.group(TokenNames.QUOTE.name()) != null)) {
-          // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
-          // they have identical regex but CHAR doesn't work for some reason
-          // anyway, this processes anything in quotes as an error if its not a "char" or another quote
-          tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
-          errors++;
         }
         else if (inComments) {
           // you're in a comment, silly, nothing is going to happen
@@ -114,6 +110,43 @@ public class lexer1 {
         }
         else if (snoop.group(TokenNames.INVALIDCOMMENT.name()) != null) {
           inComments = true;
+        }
+        else if (inQuotes) {
+          // for the life of me, I don't know why I have to use TokenNames.ID.name() here instead of CHAR.
+          // they have identical regex but CHAR doesn't work for some reason
+          // anyway, this processes anything in quotes as an error if its not a "char" or another quote
+          if (snoop.group(TokenNames.ID.name()) != null) {
+            tokens.add(new Token("CHAR", snoop.group(TokenNames.ID.name()),
+                line, snoop.start()+1));
+          }
+          else if (snoop.group(TokenNames.QUOTE.name()) != null) {
+            tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
+                line, snoop.start()+1));
+            inQuotes = false;
+          }
+          else if (snoop.group(TokenNames.CRLF.name()) != null) {
+            // doesn't work
+            // System.out.println("CRLF found");
+            tokens.add(new Token("ERROR", "\n", line, snoop.start()+1));
+          }
+          else if (snoop.group(TokenNames.SPACE.name()) != null) {
+            tokens.add(new Token("SPACE", snoop.group(TokenNames.SPACE.name()),
+                line, snoop.start()+1));
+          }
+          else if (snoop.group(TokenNames.PRINT.name()) != null || snoop.group(TokenNames.IF.name()) != null || snoop.group(TokenNames.WHILE.name()) != null || 
+              snoop.group(TokenNames.TYPEINT.name()) != null || snoop.group(TokenNames.TYPESTRING.name()) != null || snoop.group(TokenNames.TYPEBOOLEAN.name()) != null || 
+              snoop.group(TokenNames.BOOLVALT.name()) != null || snoop.group(TokenNames.BOOLVALF.name()) != null) {
+            // this is admittedly a bruce force tactic, but it tokenizes keywords without accepting invalid characters
+            String keyword = snoop.group();
+            int index = snoop.start()+1;
+            for (int z=0; z<keyword.length(); z++) {
+              tokens.add(new Token("CHAR", keyword.substring(z, z+1), line, index+z));
+            }
+          }
+          else {
+            tokens.add(new Token("ERROR", snoop.group(), line, snoop.start()+1));
+            errors++;
+          }
         }
         // keyword matching
         else if (snoop.group(TokenNames.PRINT.name()) != null) {
@@ -222,31 +255,10 @@ public class lexer1 {
       line++;
     }
     // this statement catches any program(s) that don't end in EOP
-    if (!printed) {
-      Token lastToken = tokens.get(tokens.size() -1);
-      String lastLexeme = lastToken.lexeme;
-      if (!lastLexeme.equals("$") && !printed) {
-        warnings++;
-        printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
-        System.out.println("No end-of-program symbol found");
-      }
+    if (!printed && !tokens.isEmpty()) {
+      printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
     }
     
-  }
-  
-  public static class Token {
-    //class variables
-    public String name;
-    public String lexeme;
-    public int lineNum;
-    public int position;
-    
-    public Token(String name, String lexeme, int lineNum, int position) {
-      this.name = name;
-      this.lexeme = lexeme;
-      this.lineNum = lineNum;
-      this.position = position;
-    }
   }
   
   public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn, boolean openQ, boolean openC) {
@@ -261,6 +273,7 @@ public class lexer1 {
       }
       System.out.println(output);
     }
+    
     if (openQ) {
       System.out.println("Program ended inside a quote");
       warn++;
@@ -269,11 +282,21 @@ public class lexer1 {
       System.out.println("Program ended inside comments");
       warn++;
     }
+    Token lastToken = tokens.get(tokens.size()-1);
+    String lastLexeme = lastToken.lexeme;
+    if (!lastLexeme.equals("$")) {
+      System.out.println("No end-of-program symbol found");
+      warn++;
+    }
     if (err == 0) {
       System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
+      System.out.println("INFO - Parsing Program " + progNum);
+      parser parse = new parser(tokens);
+      parse.parseProgram();
     }
     else {
-      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)");
+      System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)\n"
+          + "INFO- Skipping PARSE because of LEXER errors.");
     }
     
     // for formatting multi-program lex
