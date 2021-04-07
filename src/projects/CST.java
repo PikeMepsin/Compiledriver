@@ -55,9 +55,10 @@ public class CST {
     if (node.tree.size() > 0) {
       formatTree += "<" + node.token + ">";
       System.out.println(formatTree);
+      depth++;
       
       for (int y=0; y<node.tree.size(); y++) {
-        printCST(node.tree.get(y), depth++);
+        printCST(node.tree.get(y), depth);
       }
     }
     // handles leaf nodes

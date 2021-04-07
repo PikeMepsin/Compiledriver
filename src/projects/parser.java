@@ -65,6 +65,7 @@ public class parser {
       if (verbose) {
         System.out.println("PARSE: StatementList");
       }
+      tree.growBranch("StatementList");
       if (input.get(index).name.equals("PRINT") || input.get(index).name.equals("ID") || input.get(index).name.equals("TYPEINT") ||
           input.get(index).name.equals("TYPESTRING") || input.get(index).name.equals("TYPEBOOLEAN") || input.get(index).name.equals("WHILE") ||
           input.get(index).name.equals("IF") || input.get(index).name.equals("LBRACE")) {
@@ -74,7 +75,6 @@ public class parser {
       else {
         // epsilon production
       }
-      tree.growBranch("StatementList");
       tree.climb();
     }
     return isMatch;
@@ -87,6 +87,24 @@ public class parser {
         System.out.println("PARSE: Statement");
       }
       tree.growBranch("Statement");
+      if (input.get(index).name.equals("PRINT")) {
+        isMatch = parsePrintStatement();
+      }
+      else if (input.get(index).name.equals("ID")) {
+        isMatch = parseId();
+      }
+      else if (input.get(index).name.equals("TYPEINT") || input.get(index).name.equals("TYPESTRING") || input.get(index).name.equals("TYPEBOOLEAN")) {
+        isMatch = parseVarDecl();
+      }
+      else if (input.get(index).name.equals("WHILE")) {
+        isMatch = parseWhileStatement();
+      }
+      else if (input.get(index).name.equals("IF")) {
+        isMatch = parseIfStatement();
+      }
+      else {
+        isMatch = parseBlock();
+      }
       tree.climb();
     }
     return isMatch;
