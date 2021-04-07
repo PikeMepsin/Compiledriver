@@ -117,6 +117,10 @@ public class parser {
         System.out.println("PARSE: PrintStatement");
       }
       tree.growBranch("PrintStatement");
+      isMatch = match("PRINT");
+      isMatch = match("OPENPAREN");
+      isMatch = parseExpr();
+      isMatch = match("CLOSEPAREN");
       tree.climb();
     }
     return isMatch;
@@ -177,6 +181,19 @@ public class parser {
         System.out.println("PARSE: Expr");
       }
       tree.growBranch("Expr");
+      if (input.get(index).name.equals("NUM")) {
+        isMatch = parseIntExpr();
+      }
+      else if (input.get(index).name.equals("OPENPAREN") || input.get(index).name.equals("BOOLVALT") || input.get(index).name.equals("BOOLVAlF")) {
+        isMatch = parseBooleanExpr();
+      }
+      else if (input.get(index).name.equals("QUOTE")) {
+        isMatch = parseStringExpr();
+      }
+      else {
+        isMatch = parseId();
+      }
+        
       tree.climb();
     }
     return isMatch;
@@ -189,6 +206,11 @@ public class parser {
         System.out.println("PARSE: IntExpr");
       }
       tree.growBranch("IntExpr");
+      parseDigit();
+      if (input.get(index).name.equals("INCROP")) {
+        isMatch = match("INCROP");
+        parseExpr();
+      }
       tree.climb();
     }
     return isMatch;
@@ -225,6 +247,7 @@ public class parser {
         System.out.println("PARSE: Id");
       }
       tree.growBranch("Id");
+      isMatch = match("ID");
       tree.climb();
     }
     return isMatch;
@@ -254,30 +277,6 @@ public class parser {
     return isMatch;
   }
   
-  public boolean parseChar() {
-    boolean isMatch = false;
-    if (errors == 0) {
-      if (verbose) {
-        System.out.println("PARSE: Char");
-      }
-      tree.growBranch("Char");
-      tree.climb();
-    }
-    return isMatch;
-  }
-  
-  public boolean parseSpace() {
-    boolean isMatch = false;
-    if (errors == 0) {
-      if (verbose) {
-        System.out.println("PARSE: Space");
-      }
-      tree.growBranch("Space");
-      tree.climb();
-    }
-    return isMatch;
-  }
-  
   public boolean parseDigit() {
     boolean isMatch = false;
     if (errors == 0) {
@@ -285,6 +284,7 @@ public class parser {
         System.out.println("PARSE: Digit");
       }
       tree.growBranch("Digit");
+      isMatch = match("NUM");
       tree.climb();
     }
     return isMatch;
@@ -313,20 +313,6 @@ public class parser {
     }
     return isMatch;
   }
-
-  public boolean parseIntOp() {
-    boolean isMatch = false;
-    if (errors == 0) {
-      if (verbose) {
-        System.out.println("PARSE: IntOp");
-      }
-      tree.growBranch("IntOp");
-      tree.climb();
-    }
-    return isMatch;
-  }
-
-
 
 
   
