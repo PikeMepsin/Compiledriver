@@ -52,7 +52,7 @@ public class parser {
       }
       tree.growBranch("Block");
       isMatch = match("LBRACE");
-      parseStatementList();
+      isMatch = parseStatementList();
       isMatch = match("RBRACE");
       tree.climb();
     }
@@ -133,6 +133,9 @@ public class parser {
         System.out.println("PARSE: AssignmentStatement");
       }
       tree.growBranch("AssignmentStatement");
+      parseId();
+      isMatch = match("ASSIGNOP");
+      parseExpr();
       tree.climb();
     }
     return isMatch;
@@ -145,6 +148,8 @@ public class parser {
         System.out.println("PARSE: VarDecl");
       }
       tree.growBranch("VarDecl");
+      isMatch = parseType();
+      isMatch = parseId();
       tree.climb();
     }
     return isMatch;
@@ -223,6 +228,9 @@ public class parser {
         System.out.println("PARSE: StringExpr");
       }
       tree.growBranch("StringExpr");
+      isMatch = match("QUOTE");
+      parseCharList();
+      isMatch = match("QUOTE");
       tree.climb();
     }
     return isMatch;
@@ -270,8 +278,33 @@ public class parser {
         System.out.println("PARSE: CharList");
       }
       tree.growBranch("CharList");
-      tree.climb();
     }
+    if (input.get(index).name.equals("CHAR")) {
+      if (errors == 0) {
+        if (verbose) {
+          System.out.println("PARSE: Char");
+        }
+        tree.growBranch("Char");
+        isMatch = match("CHAR");
+        tree.climb();
+        isMatch = parseCharList();
+      }
+    }
+    else if (input.get(index).name.equals("SPACE")) {
+      if (errors == 0) {
+        if (verbose) {
+          System.out.println("PARSE: Space");
+        }
+        tree.growBranch("Char");
+        isMatch = match("SPACE");
+        tree.climb();
+        isMatch = parseCharList();
+      }
+    }
+    else {
+      // epsilon production
+    }
+    tree.climb();
     return isMatch;
   }
   
@@ -282,6 +315,15 @@ public class parser {
         System.out.println("PARSE: Type");
       }
       tree.growBranch("Type");
+      if (input.get(index).name.equals("TYPEINT")) {
+        isMatch = match("TYPEINT");
+      }
+      else if (input.get(index).name.equals("TYPEBOOLEAN")) {
+        isMatch = match("TYPEBOOLEAN");
+      }
+      else {
+        isMatch = match("TYPESTRING");
+      }
       tree.climb();
     }
     return isMatch;
