@@ -13,7 +13,7 @@ import java.lang.Math;
  * @author Michael Pepsin
  */
 
-public class lexer {
+public class Compiledriver {
   
   public static enum TokenNames {
     //accepted tokens and their naming convention
@@ -296,7 +296,7 @@ public class lexer {
     }
     else {
       System.out.println("Lex failed with " + err + " error(s) and " + warn + " warnings(s)\n"
-          + "INFO- Not skipping PARSE because of LEX errors.");
+          + "INFO- Skipping PARSE because of LEXER errors.");
     }
     
     // for formatting multi-program lex

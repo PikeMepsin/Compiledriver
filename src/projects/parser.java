@@ -39,7 +39,11 @@ public class parser {
     validProg = isMatch;
     if (validProg) {
       treeTrace();
+      System.out.println("Parse completed bug-free");
       // call for project 3 will go here
+    }
+    else {
+      System.out.println("\nCST skipped due to PARSER errors");
     }
     return isMatch;
   }
@@ -162,6 +166,9 @@ public class parser {
         System.out.println("PARSE: WhileStatement");
       }
       tree.growBranch("WhileStatement");
+      isMatch = match("WHILE");
+      parseBooleanExpr();
+      isMatch = parseBlock();
       tree.climb();
     }
     return isMatch;
@@ -174,6 +181,9 @@ public class parser {
         System.out.println("PARSE: IfStatement");
       }
       tree.growBranch("IfStatement");
+      isMatch = match("IF");
+      parseBooleanExpr();
+      isMatch = parseBlock();
       tree.climb();
     }
     return isMatch;
@@ -388,12 +398,12 @@ public class parser {
         isMatch = true;
       }
       
-      if (index < input.size()) {
+      if (index < input.size()-1) {
         index++;
       }
       
       if (!isMatch) {
-        String errMessage = String.format("ERROR at (%d:%d) : PARSER expected %s, found $s", input.get(index).lineNum, input.get(index).position, expectedToken, input.get(index).lexeme);
+        String errMessage = String.format("ERROR at (%d:%d) : PARSER expected %s, found %s", input.get(index).lineNum, input.get(index).position, expectedToken, input.get(index).lexeme);
         System.out.println(errMessage);
         errors++;
       }
