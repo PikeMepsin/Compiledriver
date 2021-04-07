@@ -235,6 +235,16 @@ public class parser {
         System.out.println("PARSE: BooleanExpr");
       }
       tree.growBranch("BooleanExpr");
+      if (input.get(index).name.equals("OPENPAREN")) {
+        isMatch = match("OPENPAREN");
+        parseExpr();
+        parseBoolOp();
+        parseExpr();
+        isMatch = match("CLOSEPAREN");
+      }
+      else {
+        parseBoolVal();
+      }
       tree.climb();
     }
     return isMatch;
@@ -297,6 +307,12 @@ public class parser {
         System.out.println("PARSE: BoolOp");
       }
       tree.growBranch("BoolOp");
+      if (input.get(index).name.equals("BOOLEQ")) {
+        isMatch = match("BOOLEQ");
+      }
+      else {
+        isMatch = match("BOOLINEQ");
+      }
       tree.climb();
     }
     return isMatch;
@@ -309,6 +325,12 @@ public class parser {
         System.out.println("PARSE: BoolVal");
       }
       tree.growBranch("BoolVal");
+      if (input.get(index).name.equals("BOOLVALT")) {
+        isMatch = match("BOOLVALT");
+      }
+      else {
+        isMatch = match("BOOLVALF");
+      }
       tree.climb();
     }
     return isMatch;
