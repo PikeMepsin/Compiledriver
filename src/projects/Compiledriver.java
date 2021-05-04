@@ -63,7 +63,9 @@ public class Compiledriver {
     // flags
     boolean inQuotes = false;
     boolean inComments = false;
+    boolean wrongLineErr = false;
     boolean printed = false;
+    int tempLine = 0;
     
     // this is the lex loop, reading line by line from a text file
     while (lex.hasNextLine()) {
@@ -93,7 +95,7 @@ public class Compiledriver {
           // the EOP symbol is the be-all end-all, we check for it early
           tokens.add(new Token("EOP", snoop.group(TokenNames.EOP.name()),
               line, snoop.start()+1));
-          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
+          printStream(tokens, progCounter, errors, warnings, inQuotes, inComments, wrongLineErr);
           printed = true;
           progCounter++;
           tokens.clear();
@@ -120,9 +122,19 @@ public class Compiledriver {
                 line, snoop.start()+1));
           }
           else if (snoop.group(TokenNames.QUOTE.name()) != null) {
-            tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
+            if (tempLine != line) {
+              tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
+                  line, snoop.start()+1));
+              errors++;
+              wrongLineErr = true;
+              inQuotes = false;
+            }
+            else {
+              tokens.add(new Token("QUOTE", snoop.group(TokenNames.QUOTE.name()),
                 line, snoop.start()+1));
-            inQuotes = false;
+              inQuotes = false;
+            }
+            
           }
           else if (snoop.group(TokenNames.CRLF.name()) != null) {
             // doesn't work
@@ -212,6 +224,7 @@ public class Compiledriver {
         else if (snoop.group(TokenNames.QUOTE.name()) != null) {
           if (!inQuotes) {
             inQuotes = true;
+            tempLine = line;
           }
           else {
             inQuotes = false;
@@ -256,12 +269,12 @@ public class Compiledriver {
     }
     // this statement catches any program(s) that don't end in EOP
     if (!printed && !tokens.isEmpty()) {
-      printStream(tokens, progCounter, errors, warnings, inQuotes, inComments);
+      printStream(tokens, progCounter, errors, warnings, inQuotes, inComments, wrongLineErr);
     }
     
   }
   
-  public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn, boolean openQ, boolean openC) {
+  public static void printStream(ArrayList<Token> tokens, int progNum, int err, int warn, boolean openQ, boolean openC, boolean wrongL) {
     // print method, called after EOP is reached, or at the end of input otherwise
     String output = "";
     System.out.println("INFO - Compilation started");
@@ -281,6 +294,9 @@ public class Compiledriver {
     if (openC) {
       System.out.println("Program ended inside comments");
       warn++;
+    }
+    if (wrongL) {
+      System.out.println("Quote pairs must be on the same line");
     }
     Token lastToken = tokens.get(tokens.size()-1);
     String lastLexeme = lastToken.lexeme;
