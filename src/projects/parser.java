@@ -33,6 +33,8 @@ public class parser {
     // flag for deciding whether or not to print
     boolean validProg = false;
     
+    boolean singleDigitErr = false;
+    
     if (input.size() < 3) {
       System.out.println("PARSE ERROR: a program must at least consist of {}$");
       errors++;
@@ -395,6 +397,10 @@ public class parser {
       }
       tree.growBranch("Digit");
       isMatch = match("NUM");
+      if (isMatch && input.get(index).name.equals("NUM")) {
+        errors++;
+        isMatch = match("10");
+      }
       tree.climb();
     }
     return isMatch;
@@ -448,6 +454,10 @@ public class parser {
   // match method for checking expected vs. actual
   public boolean match(String expectedToken) {
     boolean isMatch = false;
+    if (expectedToken.equals("10")) {
+      String errMessage = String.format("ERROR at (%d:%d) : Numbers must be single digits", input.get(index+1).lineNum, input.get(index+1).position);
+      System.out.println(errMessage);
+    }
     if (errors == 0) {
       if (input.get(index).name.equals(expectedToken)) {
         tree.sproutLeaf(input.get(index).lexeme);
