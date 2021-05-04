@@ -63,8 +63,10 @@ public class CST {
     }
     // handles leaf nodes
     else {
-      formatTree += "[ " + node.token + " ]";
-      System.out.println(formatTree);
+      if (node.token != "StatementList") {
+        formatTree += "[ " + node.token + " ]";
+        System.out.println(formatTree);
+      }
     }
   }
   

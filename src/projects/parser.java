@@ -222,7 +222,7 @@ public class parser {
         isMatch = parseIntExpr();
       }
       // boolean expressions
-      else if (input.get(index).name.equals("OPENPAREN") || input.get(index).name.equals("BOOLVALT") || input.get(index).name.equals("BOOLVAlF")) {
+      else if (input.get(index).name.equals("OPENPAREN") || input.get(index).name.equals("BOOLVALT") || input.get(index).name.equals("BOOLVALF")) {
         isMatch = parseBooleanExpr();
       }
       // string expressions
