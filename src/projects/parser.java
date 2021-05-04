@@ -83,7 +83,7 @@ public class parser {
       
       if (input.get(index).name.equals("PRINT") || input.get(index).name.equals("ID") || input.get(index).name.equals("TYPEINT") ||
           input.get(index).name.equals("TYPESTRING") || input.get(index).name.equals("TYPEBOOLEAN") || input.get(index).name.equals("WHILE") ||
-          input.get(index).name.equals("IF") || input.get(index).name.equals("LBRACE")) {
+          input.get(index).name.equals("IF") || input.get(index).name.equals("LBRACE") || input.get(index).name.equals("QUOTE")) {
         isMatch = parseStatement();
         isMatch = parseStatementList();
       }
@@ -107,6 +107,9 @@ public class parser {
       // handle the various statement modes
       if (input.get(index).name.equals("PRINT")) {
         isMatch = parsePrintStatement();
+      }
+      else if (input.get(index).name.equals("QUOTE")) {
+        isMatch = parseExpr();
       }
       else if (input.get(index).name.equals("ID")) {
         isMatch = parseAssignmentStatement();

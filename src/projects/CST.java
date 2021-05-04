@@ -63,7 +63,8 @@ public class CST {
     }
     // handles leaf nodes
     else {
-      if (node.token != "StatementList") {
+      // sanitize output to omit epsilon productions of statement and character lists
+      if (node.token != "StatementList" && node.token != "CharList") {
         formatTree += "[ " + node.token + " ]";
         System.out.println(formatTree);
       }
