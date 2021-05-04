@@ -33,8 +33,6 @@ public class parser {
     // flag for deciding whether or not to print
     boolean validProg = false;
     
-    boolean singleDigitErr = false;
-    
     if (input.size() < 3) {
       System.out.println("PARSE ERROR: a program must at least consist of {}$");
       errors++;
@@ -49,8 +47,11 @@ public class parser {
     validProg = isMatch;
     if (validProg) {
       treeTrace();
-      System.out.println("Parse completed bug-free");
-      // call for project 3 will go here
+      System.out.println("Parse completed bug-free\n");
+      // call for project 3, Semantic Analysis
+      semanticAnalysis ana = new semanticAnalysis();
+      ASTNode ASTRoot = null;
+      ASTRoot = ana.plant(ASTRoot);
     }
     else {
       System.out.println("\nCST skipped due to PARSER errors");
