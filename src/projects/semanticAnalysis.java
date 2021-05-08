@@ -19,6 +19,27 @@ public class semanticAnalysis {
   
   public CSTNode plant(CSTNode node) {
     // TODO
+    
+    if (node.token.equals("LBRACE")) {
+      AST.growBranch("Block");
+      
+      if (currentScope == -1) {
+        symbolTable.add(new Scope());
+      }
+      else {
+        symbolTable.add(new Scope(currentScope));
+      }
+      
+      currentScope = symbolTable.size()-1;
+    }
+    else if (node.token.equals("RBRACE")) {
+      AST.climb();
+      if (symbolTable.get(currentScope).prevScope != -2) {
+        currentScope = symbolTable.get(currentScope).prevScope;
+      }
+    }
+    
+    
     return node;
   }
 }
@@ -29,7 +50,7 @@ class scopeNode {
   String vType = "";
   int vLine = 0;
   int vPos = 0;
-  int vScope = 0;
+  int vScope = -1;
   boolean inUse = false;
   boolean initialized = false;
   ArrayList<Integer> varScope = new ArrayList<>();
@@ -49,7 +70,7 @@ class scopeNode {
 
 class Scope {
   // arraylist abstraction of symbol table
-  int prevScope = -1;
+  int prevScope = -2;
   
   // one for each letter of the alphabet, because IDs must be length 1
   scopeNode[] vars = new scopeNode[26];
