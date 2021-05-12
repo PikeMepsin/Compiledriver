@@ -13,7 +13,7 @@ public class parser {
   int errors = 0;
   
   // flag for printing in verbose mode
-  boolean verbose = true;
+  boolean verbose = false;
   
   ArrayList<Token> input = new ArrayList<Token>();
   CST tree = new CST();

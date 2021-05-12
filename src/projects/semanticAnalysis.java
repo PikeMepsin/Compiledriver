@@ -7,7 +7,7 @@ public class semanticAnalysis {
   
   // counters
   int currentScope = -1;
-  int typeErr = 0;
+  int typeErrs = 0;
   
   // flags
   boolean errors = false;
@@ -38,9 +38,35 @@ public class semanticAnalysis {
         currentScope = symbolTable.get(currentScope).prevScope;
       }
     }
+    else if (node.token.equals("PrintStatement")) {
+      AST.growBranch("Print");
+      
+      CSTNode expression = null;
+      expression = node.tree.get(2);
+      
+      exprBranches(expression, true);
+    }
     
     
     return node;
+  }
+  
+  public String exprBranches(CSTNode exp, boolean ret) {
+    // print statement
+    if (exp.tree.get(0).token.equals("StringExpr")) {
+      String word = "";
+      CSTNode charlist = exp.tree.get(0).tree.get(1);
+      
+      while (charlist.tree.size() != 0) {
+        word = word + charlist.tree.get(0).tree.get(0).token;
+        charlist = charlist.tree.get(1);
+      }
+      
+      AST.sproutLeaf(word);
+      
+      return "String";
+    }
+    return "Error";
   }
 }
 
