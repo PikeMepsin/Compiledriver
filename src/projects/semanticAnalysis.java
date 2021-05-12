@@ -38,6 +38,7 @@ public class semanticAnalysis {
         currentScope = symbolTable.get(currentScope).prevScope;
       }
     }
+    // print statement
     else if (node.token.equals("PrintStatement")) {
       AST.growBranch("Print");
       
@@ -45,6 +46,23 @@ public class semanticAnalysis {
       expression = node.tree.get(2);
       
       exprBranches(expression, true);
+      AST.climb();
+    }
+    // variable declaration
+    else if(node.token.equals("VarDecl")) {
+      // assignment statement doesn't need the '=' or another expression
+      // it will always need only Id and type
+      AST.growBranch("VarDecl");
+      AST.sproutLeaf(node.tree.get(0).tree.get(0).token);
+      AST.sproutLeaf(node.tree.get(1).tree.get(0).token);
+      
+      // consult the symbol table for Id availability
+      errors = symbolTable.get(currentScope).inTable(node.tree.get(1).tree.get(0).token, node.tree.get(1).tree.get(0).token, currentScope);
+      
+      if (errors) {
+        typeErrs++;
+      }
+      AST.climb();
     }
     
     
@@ -74,8 +92,6 @@ class scopeNode {
   // represents variable scope
   String vName = "";
   String vType = "";
-  int vLine = 0;
-  int vPos = 0;
   int vScope = -1;
   boolean inUse = false;
   boolean initialized = false;
@@ -85,11 +101,9 @@ class scopeNode {
     // default constructor
   }
   
-  public scopeNode(String name, String type, int line, int pos, int scope) {
+  public scopeNode(String name, String type, int scope) {
     vName = name;
     vType = type;
-    vLine = line;
-    vPos = pos;
     vScope = scope;
   }
 }
@@ -115,6 +129,32 @@ class Scope {
     for (int n=0; n<26; n++) {
       vars[n] = null;
     }
+  }
+  
+  public boolean inTable(String id, String type, int scope) {
+    boolean exists = false;
+    char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+    
+    int col = 0;
+    char check = id.charAt(0);
+    
+    for (int i=0; i<alphabet.length; i++) {
+      if (check == alphabet[i]) {
+        col = i;
+      }
+    }
+    scopeNode temp = new scopeNode(id, type, scope);
+    
+    if (vars[col] == null) {
+      vars[col] = temp;
+    }
+    else {
+      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope " + scope);
+      exists = true;
+    }
+    
+    return exists;
   }
   
   
