@@ -17,7 +17,7 @@ public class semanticAnalysis {
     // default constructor
   }
   
-  public CSTNode plant(CSTNode node) {
+  public void plant(CSTNode node) {
     // TODO
     
     if (node.token.equals("LBRACE")) {
@@ -66,7 +66,6 @@ public class semanticAnalysis {
     }
     
     
-    return node;
   }
   
   public String exprBranches(CSTNode exp, boolean ret) {
@@ -83,6 +82,14 @@ public class semanticAnalysis {
       AST.sproutLeaf(word);
       
       return "String";
+    }
+    else if (exp.tree.get(0).token.equals("ID")) {
+      AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
+      
+      exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token);
+      if (exists) {
+        errors = true;
+      }
     }
     return "Error";
   }
@@ -150,12 +157,67 @@ class Scope {
       vars[col] = temp;
     }
     else {
-      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope " + scope);
       exists = true;
+      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope " + scope + " already exists");
     }
     
     return exists;
   }
   
+  public boolean doesExist(String id, int scope, ArrayList<Scope> table) {
+    boolean exists = false;
+    boolean initialized = false;
+    char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+    
+    int col = 0;
+    char check = id.charAt(0);
+    
+    for (int j=0; j<alphabet.length; j++) {
+      if (check == alphabet[j]) {
+        col = j;
+      }
+    }
+    
+    if (vars[col] == null) {
+      exists = false;
+      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope" + scope + " used before declared");
+    }
+    else {
+      exists = true;
+      // ok, it's declared, check if it has a value bound to it
+      initialized = vars.get(scope).isInitialized(id, scope, table);
+    }
+    
+    return exists;
+  }
+  
+  public boolean isInitialized(String id, int scope, ArrayList<Scope> table) {
+    boolean inited = false;
+    char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+    
+    int col = 0;
+    char check = id.charAt(0);
+    
+    for (int k=0; k<alphabet.length; k++) {
+      if (check == alphabet[k]) {
+        col = k;
+      }
+    }
+    
+    if (vars[col] != null) {
+      for (int i=0; i<vars[col].varScope.size(); i++) {
+        if (vars[col].varScope.get(i) == scope) {
+          inited = true;
+        }
+        else {
+          System.out.println("SEMANTIC ERROR: Variable " + id + " in scope "+ scope + " is not initialized");
+        }
+      }
+    }
+    
+    return inited;
+  }
   
 }

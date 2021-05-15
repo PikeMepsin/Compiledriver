@@ -50,8 +50,7 @@ public class parser {
       System.out.println("Parse completed bug-free\n");
       // call for project 3, Semantic Analysis
       semanticAnalysis ana = new semanticAnalysis();
-      CSTNode ASTRoot = null;
-      ana.plant(ASTRoot);
+      ana.plant(tree.root);
     }
     else {
       System.out.println("\nCST skipped due to PARSER errors");

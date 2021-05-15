@@ -2,6 +2,8 @@ import java.util.ArrayList;
 
 class CSTNode {
   public String token = "";
+  public String type = "";
+  public int sc0pe = 0;
   
   ArrayList<CSTNode> tree = new ArrayList<CSTNode>();
   
@@ -14,6 +16,14 @@ class CSTNode {
   public CSTNode(String tok) {
     this.token = tok;
   }
+  
+  // AST leaf nodes
+  public CSTNode(String tok, String type, int scope) {
+    this.token = tok;
+    this.type = type;
+    this.sc0pe = scope;
+  }
+  
 }
 
 public class CST {
