@@ -50,6 +50,7 @@ public class parser {
       System.out.println("Parse completed bug-free\n");
       // call for project 3, Semantic Analysis
       semanticAnalysis ana = new semanticAnalysis();
+      // System.out.println(tree.root.tree.get(0).token);
       ana.plant(tree.root);
     }
     else {

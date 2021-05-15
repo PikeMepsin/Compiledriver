@@ -12,6 +12,7 @@ public class semanticAnalysis {
   // flags
   boolean errors = false;
   boolean exists = false;
+  boolean end = false;
   
   public semanticAnalysis() {
     // default constructor
@@ -19,8 +20,12 @@ public class semanticAnalysis {
   
   public void plant(CSTNode node) {
     // TODO
+    System.out.println(node.token);
     
-    if (node.token.equals("LBRACE")) {
+    if (node.token.equals("$")) {
+      end = true;
+    }
+    else if (node.token.equals("{")) {
       AST.growBranch("Block");
       
       if (currentScope == -1) {
@@ -32,7 +37,7 @@ public class semanticAnalysis {
       
       currentScope = symbolTable.size()-1;
     }
-    else if (node.token.equals("RBRACE")) {
+    else if (node.token.equals("}")) {
       AST.climb();
       if (symbolTable.get(currentScope).prevScope != -2) {
         currentScope = symbolTable.get(currentScope).prevScope;
@@ -54,7 +59,7 @@ public class semanticAnalysis {
       // it will always need only Id and type
       AST.growBranch("VarDecl");
       AST.sproutLeaf(node.tree.get(0).tree.get(0).token);
-      AST.sproutLeaf(node.tree.get(1).tree.get(0).token);
+      AST.sproutLeaf(node.tree.get(1).tree.get(0).token, node.tree.get(0).tree.get(0).token, currentScope);
       
       // consult the symbol table for Id availability
       errors = symbolTable.get(currentScope).inTable(node.tree.get(1).tree.get(0).token, node.tree.get(1).tree.get(0).token, currentScope);
@@ -65,6 +70,14 @@ public class semanticAnalysis {
       AST.climb();
     }
     
+    if (end) {
+      AST.printCST(AST.root, 0);
+    }
+    else if (node.tree.size() != 0) {
+      for (int b=0; b<node.tree.size(); b++) {
+        plant(node.tree.get(b));
+      }
+    }
     
   }
   
@@ -79,7 +92,7 @@ public class semanticAnalysis {
         charlist = charlist.tree.get(1);
       }
       
-      AST.sproutLeaf(word);
+      AST.sproutLeaf(word, "String", currentScope);
       
       return "String";
     }
@@ -92,6 +105,10 @@ public class semanticAnalysis {
       }
     }
     return "Error";
+  }
+  
+  public void printAST(CSTNode node, int depth) {
+    // let's see if this is necessary before I write it, or if i can use printCST
   }
 }
 

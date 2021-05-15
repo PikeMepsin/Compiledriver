@@ -41,6 +41,13 @@ public class CST {
     this.pointer.tree.add(node);
   }
   
+  // adds a leaf node including scope and type, important for the AST
+  public void sproutLeaf(String name, String ty, int sco) {
+    CSTNode node = new CSTNode(name, ty, sco);
+    node.parent = this.pointer;
+    this.pointer.tree.add(node);
+  }
+  
   // adds a branch node, these act as productions and nonterminals
   public void growBranch(String name) {
     CSTNode node = new CSTNode(name);
