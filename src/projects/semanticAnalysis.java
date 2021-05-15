@@ -86,7 +86,7 @@ public class semanticAnalysis {
     else if (exp.tree.get(0).token.equals("ID")) {
       AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
       
-      exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token);
+      exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token, currentScope, symbolTable);
       if (exists) {
         errors = true;
       }
@@ -185,8 +185,9 @@ class Scope {
     }
     else {
       exists = true;
+      vars[col].inUse = true;
       // ok, it's declared, check if it has a value bound to it
-      initialized = vars.get(scope).isInitialized(id, scope, table);
+      initialized = table.get(scope).isInitialized(id, scope, table);
     }
     
     return exists;
