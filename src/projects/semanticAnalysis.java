@@ -54,7 +54,7 @@ public class semanticAnalysis {
       AST.climb();
     }
     // variable declaration
-    else if(node.token.equals("VarDecl")) {
+    else if (node.token.equals("VarDecl")) {
       // assignment statement doesn't need the '=' or another expression
       // it will always need only Id and type
       AST.growBranch("VarDecl");
@@ -67,6 +67,23 @@ public class semanticAnalysis {
       if (errors) {
         typeErrs++;
       }
+      errors = false;
+      AST.climb();
+    }
+    else if (node.token.equals("AssignmentStatement")) {
+      String typ = "";
+      AST.growBranch("Assign");
+      
+      AST.sproutLeaf(node.tree.get(0).tree.get(0).token, node.tree.get(0).tree.get(0).type, currentScope);
+      
+      typ = exprBranches(node.tree.get(2), false);
+      
+      errors = symbolTable.get(currentScope).typeMisCheck(node.tree.get(0).tree.get(0).token, typ, currentScope, symbolTable, currentScope);
+      
+      if (errors) {
+        typeErrs++;
+      }
+      errors = false;
       AST.climb();
     }
     
@@ -96,7 +113,7 @@ public class semanticAnalysis {
       
       return "String";
     }
-    else if (exp.tree.get(0).token.equals("ID")) {
+    else if (exp.tree.get(0).type.equals("ID")) {
       AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
       
       exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token, currentScope, symbolTable);
@@ -179,6 +196,41 @@ class Scope {
     }
     
     return exists;
+  }
+  
+  public boolean typeMisCheck(String id, String type, int scope, ArrayList<Scope> table, int ogScope) {
+    boolean err = false;
+    char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+    
+    int col = 0;
+    char check = id.charAt(0);
+    
+    for (int q=0; q<alphabet.length; q++) {
+      if (check == alphabet[q]) {
+        col = q;
+      }
+    }
+    
+    if (vars[col] == null && prevScope != -2) {
+      err = table.get(prevScope).typeMisCheck(id, type, prevScope, table, ogScope);
+    }
+    else if (vars[col] == null && prevScope == -2) {
+      System.out.println("SEMANTIC ERROR: Variable " + id + " used before declared");
+      err = true;
+    }
+    else if (vars[col] != null) {
+      if (!(vars[col].vType.equals(type))) {
+        System.out.println("SEMANTIC ERROR: Type mismatch, var " + id + " of type " + vars[col].vType + " cannot be compared to " + type);
+        err = true;
+      }
+      else {
+        vars[col].initialized = true;
+        vars[col].varScope.add(ogScope);
+      }
+    }
+    
+    return err;
   }
   
   public boolean doesExist(String id, int scope, ArrayList<Scope> table) {

@@ -461,7 +461,7 @@ public class parser {
     }
     if (errors == 0) {
       if (input.get(index).name.equals(expectedToken)) {
-        tree.sproutLeaf(input.get(index).lexeme);
+        tree.sproutLeaf(input.get(index).lexeme, expectedToken);
         isMatch = true;
       }
       

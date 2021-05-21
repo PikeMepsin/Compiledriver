@@ -17,6 +17,11 @@ class CSTNode {
     this.token = tok;
   }
   
+  public CSTNode(String tok, String type) {
+    this.token = tok;
+    this.type = type;
+  }
+  
   // AST leaf nodes
   public CSTNode(String tok, String type, int scope) {
     this.token = tok;
@@ -37,6 +42,13 @@ public class CST {
   // adds a leaf node, this will be our terminal symbol
   public void sproutLeaf(String name) {
     CSTNode node = new CSTNode(name);
+    node.parent = this.pointer;
+    this.pointer.tree.add(node);
+  }
+  
+  // adds leaf to maintain type, especially helpful for nodes containing vars
+  public void sproutLeaf(String name, String ty) {
+    CSTNode node = new CSTNode(name, ty);
     node.parent = this.pointer;
     this.pointer.tree.add(node);
   }
