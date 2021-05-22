@@ -1,0 +1,15 @@
+{
+  string b
+  b = "beef"
+  print(b)
+  int a
+  int c
+  a = 1
+  c = 1
+  if (a == c) {
+    print(b)
+  }
+  while (a != 5) {
+    print("chief")
+  }
+}$

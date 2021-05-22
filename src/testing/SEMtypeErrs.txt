@@ -1,0 +1,34 @@
+{
+  int a
+  int b
+  string c
+  string d
+  boolean e
+  boolean f
+  
+  a = 1
+  b = 9
+  c = "meatball"
+  d = "beatmall"
+  e = false
+  f = true
+}$
+
+{
+  int a
+  {
+    {
+      {
+        int b
+      }
+    }
+  }
+  string c
+  {
+   string d
+   {
+     boolean e
+   }
+  } 
+  boolean f
+}$
