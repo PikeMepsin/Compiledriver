@@ -50,7 +50,7 @@ public class semanticAnalysis {
       CSTNode expression = null;
       expression = node.tree.get(2);
       
-      exprBranches(expression, true);
+      exprBranches(expression, false);
       AST.climb();
     }
     // variable declaration
@@ -62,7 +62,7 @@ public class semanticAnalysis {
       AST.sproutLeaf(node.tree.get(1).tree.get(0).token, node.tree.get(0).tree.get(0).token, currentScope);
       
       // consult the symbol table for Id availability
-      errors = symbolTable.get(currentScope).inTable(node.tree.get(1).tree.get(0).token, node.tree.get(1).tree.get(0).token, currentScope);
+      errors = symbolTable.get(currentScope).inTable(node.tree.get(1).tree.get(0).token, node.tree.get(0).tree.get(0).token, currentScope);
       
       if (errors) {
         typeErrs++;
@@ -76,7 +76,7 @@ public class semanticAnalysis {
       
       AST.sproutLeaf(node.tree.get(0).tree.get(0).token, node.tree.get(0).tree.get(0).type, currentScope);
       
-      typ = exprBranches(node.tree.get(2), false);
+      typ = exprBranches(node.tree.get(2), true);
       
       errors = symbolTable.get(currentScope).typeMisCheck(node.tree.get(0).tree.get(0).token, typ, currentScope, symbolTable, currentScope);
       
@@ -102,12 +102,38 @@ public class semanticAnalysis {
           AST.growBranch("Equal");
         }
         
-        type1 = exprBranches(node.tree.get(1).tree.get(1), true);
-        type2 = exprBranches(node.tree.get(1).tree.get(3), false);
+        type1 = exprBranches(node.tree.get(1).tree.get(1), false);
+        type2 = exprBranches(node.tree.get(1).tree.get(3), true);
         
         if (!(type1.equals(type2))) {
           typeErrs++;
           System.out.println("SEMANTIC ERROR: Type mismatch in if statement, cannot compare " + type1 + " and " + type2);
+        }
+      }
+    }
+    else if (node.token.equals("WhileStatement")) {
+      AST.growBranch("While");
+      
+      if (node.tree.get(1).tree.size() == 1) {
+        AST.sproutLeaf(node.tree.get(1).tree.get(0).tree.get(0).token, node.tree.get(1).tree.get(0).tree.get(0).token, currentScope);
+      }
+      else {
+        String type1 = "";
+        String type2 = "";
+        
+        if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("BOOLINEQ")) {
+          AST.growBranch("Not Equal");
+        }
+        else {
+          AST.growBranch("Equal");
+        }
+        
+        type1 = exprBranches(node.tree.get(1).tree.get(1), false);
+        type2 = exprBranches(node.tree.get(1).tree.get(3), true);
+        
+        if (!(type1.equals(type2))) {
+          typeErrs++;
+          System.out.println("SEMANTIC ERROR: Type mismatch in boolean comparison");
         }
       }
     }
@@ -142,7 +168,23 @@ public class semanticAnalysis {
       if (exp.tree.get(0).tree.size() == 1) {
         AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).token, currentScope);
         
-        if (!ret) {
+        if (ret) {
+          AST.climb();
+        }
+      }
+      else {
+        String ttype = "";
+        AST.growBranch("Add");
+        AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).type, currentScope);
+        
+        ttype = exprBranches(exp.tree.get(0).tree.get(2), true);
+        
+        if (!(ttype.equals("Int"))) {
+          typeErrs++;
+          System.out.println("SEMANTIC ERROR: Expected Int when adding, got " + ttype);
+        }
+        
+        if (ret) {
           AST.climb();
         }
       }
@@ -178,19 +220,20 @@ public class semanticAnalysis {
       
       return "Bool";
     }
-    else if (exp.tree.get(0).type.equals("ID")) {
+    else if (exp.tree.get(0).token.equals("Id")) {
       AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
       
       exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token, currentScope, symbolTable);
       if (exists) {
         errors = true;
       }
+      else {
+        exists = false;
+        typeErrs++;
+        return "Id";
+      }
     }
     return "Error";
-  }
-  
-  public void printAST(CSTNode node, int depth) {
-    // let's see if this is necessary before I write it, or if i can use printCST
   }
 }
 
@@ -315,7 +358,7 @@ class Scope {
     
     if (vars[col] == null) {
       exists = false;
-      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope" + scope + " used before declared");
+      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope " + scope + " used before declared");
     }
     else {
       exists = true;
