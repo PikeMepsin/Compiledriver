@@ -86,6 +86,31 @@ public class semanticAnalysis {
       errors = false;
       AST.climb();
     }
+    else if (node.token.equals("IfStatement")) {
+      AST.growBranch("If");
+      if (node.tree.get(1).tree.size() == 1) {
+        AST.sproutLeaf(node.tree.get(1).tree.get(0).tree.get(0).token, node.tree.get(1).tree.get(0).tree.get(0).token, currentScope);
+      }
+      else {
+        String type1 = "";
+        String type2 = "";
+        
+        if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("BOOLINEQ")) {
+          AST.growBranch("Not Equal");
+        }
+        else {
+          AST.growBranch("Equal");
+        }
+        
+        type1 = exprBranches(node.tree.get(1).tree.get(1), true);
+        type2 = exprBranches(node.tree.get(1).tree.get(3), false);
+        
+        if (!(type1.equals(type2))) {
+          typeErrs++;
+          System.out.println("SEMANTIC ERROR: Type mismatch in if statement, cannot compare " + type1 + " and " + type2);
+        }
+      }
+    }
     
     if (end) {
       AST.printCST(AST.root, 0);
@@ -112,6 +137,46 @@ public class semanticAnalysis {
       AST.sproutLeaf(word, "String", currentScope);
       
       return "String";
+    }
+    else if (exp.tree.get(0).token.equals("IntExpr")) {
+      if (exp.tree.get(0).tree.size() == 1) {
+        AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).token, currentScope);
+        
+        if (!ret) {
+          AST.climb();
+        }
+      }
+      
+      return "Int";
+    }
+    else if (exp.tree.get(0).token.equals("BooleanExpr")) {
+      if (exp.tree.get(0).tree.size() == 1) {
+        AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).token, currentScope);
+        
+        if (!ret) {
+          AST.climb();
+        }
+      }
+      else {
+        String ttype1 = "";
+        String ttype2 = "";
+        if (exp.tree.get(0).tree.get(2).tree.get(0).token.equals("BOOLINEQ")) {
+          AST.growBranch("Not Equal");
+        }
+        else {
+          AST.growBranch("Equal");
+        }
+        
+        ttype1 = exprBranches(exp.tree.get(0).tree.get(1), true);
+        ttype2 = exprBranches(exp.tree.get(0).tree.get(1), false);
+        if (!(ttype1.equals(ttype2))) {
+          typeErrs++;
+          System.out.println("SEMANTIC ERROR: Type mismatch in boolean comparison");
+        }
+        AST.climb();
+      }
+      
+      return "Bool";
     }
     else if (exp.tree.get(0).type.equals("ID")) {
       AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
