@@ -148,6 +148,7 @@ public class semanticAnalysis {
     
     if (end) {
       AST.printCST(AST.root, 0);
+      System.out.println(typeErrs + " type errors");
     }
     else if (node.tree.size() != 0) {
       for (int b=0; b<node.tree.size(); b++) {
@@ -209,7 +210,7 @@ public class semanticAnalysis {
       if (exp.tree.get(0).tree.size() == 1) {
         AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).token, currentScope);
         
-        if (!ret) {
+        if (ret) {
           AST.climb();
         }
       }
@@ -244,7 +245,7 @@ public class semanticAnalysis {
           AST.climb();
         }
       }
-      if (inIf) {
+      if (inIf && ret) {
         AST.climb();
         AST.climb();
         inIf = false;
