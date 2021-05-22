@@ -4,6 +4,7 @@ public class semanticAnalysis {
   // ADT declarations
   CST AST = new CST();
   ArrayList<Scope> symbolTable = new ArrayList<Scope>();
+  ArrayList<ErrMessage> errList = new ArrayList<ErrMessage>();
   
   // counters
   int currentScope = -1;
@@ -22,9 +23,8 @@ public class semanticAnalysis {
     // default constructor
   }
   
-  public void plant(CSTNode node) {
-    // TODO
-    System.out.println(node.token);
+  public void plant(CSTNode node, int progNum) {
+    //System.out.println(node.token);
     
     if (node.token.equals("$")) {
       end = true;
@@ -66,7 +66,7 @@ public class semanticAnalysis {
       AST.sproutLeaf(node.tree.get(1).tree.get(0).token, node.tree.get(0).tree.get(0).token, currentScope);
       
       // consult the symbol table for Id availability
-      errors = symbolTable.get(currentScope).inTable(node.tree.get(1).tree.get(0).token, node.tree.get(0).tree.get(0).token, currentScope);
+      errors = symbolTable.get(currentScope).inTable(node.tree.get(1).tree.get(0).token, node.tree.get(0).tree.get(0).token, currentScope, errList);
       
       if (errors) {
         typeErrs++;
@@ -82,7 +82,7 @@ public class semanticAnalysis {
       
       typ = exprBranches(node.tree.get(2), true);
       
-      errors = symbolTable.get(currentScope).typeMisCheck(node.tree.get(0).tree.get(0).token, typ, currentScope, symbolTable, currentScope);
+      errors = symbolTable.get(currentScope).typeMisCheck(node.tree.get(0).tree.get(0).token, typ, currentScope, symbolTable, currentScope, errList);
       
       if (errors) {
         typeErrs++;
@@ -113,7 +113,8 @@ public class semanticAnalysis {
         
         if (!(type1.equals(type2))) {
           typeErrs++;
-          System.out.println("SEMANTIC ERROR: Type mismatch in if statement, cannot compare " + type1 + " and " + type2);
+          String e = "SEMANTIC ERROR: Type mismatch in if statement, cannot compare " + type1 + " and " + type2;
+          errList.add(new ErrMessage(e));
         }
       }
     }
@@ -141,18 +142,35 @@ public class semanticAnalysis {
         
         if (!(type1.equals(type2))) {
           typeErrs++;
-          System.out.println("SEMANTIC ERROR: Type mismatch in boolean comparison");
+          String e = "SEMANTIC ERROR: Type mismatch in boolean comparison";
+          errList.add(new ErrMessage(e));
         }
       }
     }
     
     if (end) {
+      System.out.println("INFO - Semantic Analysis Program " + progNum);
+      System.out.println("SEMANTIC - Printing AST");
       AST.printCST(AST.root, 0);
-      System.out.println(typeErrs + " type errors");
+      if (typeErrs > 0) {
+        System.out.println("\n" + typeErrs + " type errors");
+      }
+      for (ErrMessage r : errList) {
+        System.out.println(r.message);
+      }
+      System.out.println();
+      if (errList.size() == 0 && typeErrs == 0) {
+        System.out.println("SEMANTIC - AST Error-free, printing Symbol Table");
+        printSymTable();
+      }
+      else {
+        System.out.println("SEMANTIC - Error - Skipping Symbol Table");
+        System.out.println("SEMANTIC - Error - Skipping CodeGen");
+      }
     }
     else if (node.tree.size() != 0) {
       for (int b=0; b<node.tree.size(); b++) {
-        plant(node.tree.get(b));
+        plant(node.tree.get(b), progNum);
       }
     }
     
@@ -196,7 +214,8 @@ public class semanticAnalysis {
         
         if (!(ttype.equals("int"))) {
           typeErrs++;
-          System.out.println("SEMANTIC ERROR: Expected Int when adding, got " + ttype);
+          String e = "SEMANTIC ERROR: Expected Int when adding, got " + ttype;
+          errList.add(new ErrMessage(e));
         }
         
         if (ret) {
@@ -228,7 +247,8 @@ public class semanticAnalysis {
         ttype2 = exprBranches(exp.tree.get(0).tree.get(1), false);
         if (!(ttype1.equals(ttype2))) {
           typeErrs++;
-          System.out.println("SEMANTIC ERROR: Type mismatch in boolean comparison");
+          String e= "SEMANTIC ERROR: Type mismatch in boolean comparison";
+          errList.add(new ErrMessage(e));
         }
         AST.climb();
       }
@@ -238,7 +258,7 @@ public class semanticAnalysis {
     else if (exp.tree.get(0).token.equals("Id")) {
       AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
       
-      exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token, currentScope, symbolTable, currentScope);
+      exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token, currentScope, symbolTable, currentScope, errList);
       
       if (!inBlock) {
         if (ret) {
@@ -253,7 +273,43 @@ public class semanticAnalysis {
     }
     return "Error";
   }
+  
+  public void printSymTable() {
+    for (int c=0; c<symbolTable.size(); c++) {
+      for (int d=0; d<26; d++) {
+        if (symbolTable.get(c).vars[d] != null) {
+          if (symbolTable.get(c).vars[d].vType.equals("int")) {
+            System.out.println("Id: " + symbolTable.get(c).vars[d].vName + "   Type: " + symbolTable.get(c).vars[d].vType + "   Scope: " + symbolTable.get(c).vars[d].vScope);
+          }
+          else if (symbolTable.get(c).vars[d].vType.equals("string")) {
+            System.out.println("Id: " + symbolTable.get(c).vars[d].vName + "   Type: " + symbolTable.get(c).vars[d].vType + "   Scope: " + symbolTable.get(c).vars[d].vScope);
+          }
+          else if (symbolTable.get(c).vars[d].vType.equals("boolean")) {
+            System.out.println("Id: " + symbolTable.get(c).vars[d].vName + "   Type: " + symbolTable.get(c).vars[d].vType + "   Scope: " + symbolTable.get(c).vars[d].vScope);
+          }
+        }
+      }
+    }
+  }
 }
+
+
+// ErrMessage classe are used for error reporting
+// I used a new class here because error messages are
+// added both in exprBranches and Scope methods
+class ErrMessage {
+  String message = "";
+  
+  public ErrMessage() {
+    // default constructor
+  }
+  
+  public ErrMessage(String errMess) {
+    message = errMess;
+  }
+}
+
+
 
 class scopeNode {
   // represents variable scope
@@ -298,7 +354,7 @@ class Scope {
     }
   }
   
-  public boolean inTable(String id, String type, int scope) {
+  public boolean inTable(String id, String type, int scope, ArrayList<ErrMessage> er) {
     boolean exists = false;
     char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
         'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
@@ -318,13 +374,14 @@ class Scope {
     }
     else {
       exists = true;
-      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope " + scope + " already exists");
+      String e = "SEMANTIC ERROR: Variable " + id + " in scope " + scope + " already exists";
+      er.add(new ErrMessage(e));
     }
     
     return exists;
   }
   
-  public boolean typeMisCheck(String id, String type, int scope, ArrayList<Scope> table, int ogScope) {
+  public boolean typeMisCheck(String id, String type, int scope, ArrayList<Scope> table, int ogScope, ArrayList<ErrMessage> er) {
     boolean err = false;
     char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
         'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
@@ -339,15 +396,17 @@ class Scope {
     }
     
     if (vars[col] == null && prevScope != -2) {
-      err = table.get(prevScope).typeMisCheck(id, type, prevScope, table, ogScope);
+      err = table.get(prevScope).typeMisCheck(id, type, prevScope, table, ogScope, er);
     }
     else if (vars[col] == null && prevScope == -2) {
-      System.out.println("SEMANTIC ERROR: Variable " + id + " used before declared");
+      String e = "SEMANTIC ERROR: Variable " + id + " used before declared";
+      er.add(new ErrMessage(e));
       err = true;
     }
     else if (vars[col] != null) {
       if (!(vars[col].vType.equals(type))) {
-        System.out.println("SEMANTIC ERROR: Type mismatch, var " + id + " of type " + vars[col].vType + " cannot be compared to " + type);
+        String e = "SEMANTIC ERROR: Type mismatch, var " + id + " of type " + vars[col].vType + " cannot be assigned a " + type;
+        er.add(new ErrMessage(e));
         err = true;
       }
       else {
@@ -386,7 +445,7 @@ class Scope {
     return reType;
   }
   
-  public boolean doesExist(String id, int scope, ArrayList<Scope> table, int ogScope) {
+  public boolean doesExist(String id, int scope, ArrayList<Scope> table, int ogScope, ArrayList<ErrMessage> er) {
     boolean exists = false;
     boolean initialized = false;
     char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
@@ -402,21 +461,22 @@ class Scope {
     }
     
     if (vars[col] == null && prevScope != -2) {
-      exists = table.get(prevScope).doesExist(id, prevScope, table, ogScope);
+      exists = table.get(prevScope).doesExist(id, prevScope, table, ogScope, er);
     }
     else if (vars[col] == null && prevScope != -2) {
-      System.out.println("SEMANTIC ERROR: Variable " + id + " used before declared");
+      String e = "SEMANTIC ERROR: Variable " + id + " used before declared";
+      er.add(new ErrMessage(e));
     }
     else if (vars[col] != null) {
       vars[col].inUse = true;
-      initialized = table.get(ogScope).isInitialized(id, ogScope, table);
+      initialized = table.get(ogScope).isInitialized(id, ogScope, table, er);
       exists = true;
     }
     
     return exists;
   }
   
-  public boolean isInitialized(String id, int scope, ArrayList<Scope> table) {
+  public boolean isInitialized(String id, int scope, ArrayList<Scope> table, ArrayList<ErrMessage> er) {
     boolean inited = false;
     char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
         'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
@@ -436,7 +496,8 @@ class Scope {
           inited = true;
         }
         else {
-          System.out.println("SEMANTIC ERROR: Variable " + id + " in scope "+ scope + " is not initialized");
+          String e = "SEMANTIC ERROR: Variable " + id + " in scope "+ scope + " is not initialized";
+          er.add(new ErrMessage(e));
         }
       }
     }

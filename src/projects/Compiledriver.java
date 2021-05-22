@@ -305,9 +305,9 @@ public class Compiledriver {
       warn++;
     }
     if (err == 0) {
-      System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)");
+      System.out.println("Lex completed with " + err + " error(s) and " + warn + " warning(s)\n");
       System.out.println("INFO - Parsing Program " + progNum);
-      parser parse = new parser(tokens);
+      parser parse = new parser(tokens, progNum);
       parse.parseProgram();
     }
     else {

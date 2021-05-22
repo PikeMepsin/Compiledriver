@@ -11,6 +11,7 @@ public class parser {
   
   int index = 0; // arraylist pointer
   int errors = 0;
+  int prog = 0;
   
   // flag for printing in verbose mode
   boolean verbose = false;
@@ -22,9 +23,9 @@ public class parser {
     // default constructor
   }
   
-  public parser(ArrayList<Token> lexOutput) {
+  public parser(ArrayList<Token> lexOutput, int progNum) {
     input = lexOutput;
-    
+    prog = progNum;
   }
   
   // start here, by parsing a program (called from Compiledriver.java)
@@ -51,7 +52,7 @@ public class parser {
       // call for project 3, Semantic Analysis
       semanticAnalysis ana = new semanticAnalysis();
       // System.out.println(tree.root.tree.get(0).token);
-      ana.plant(tree.root);
+      ana.plant(tree.root, prog);
     }
     else {
       System.out.println("\nCST skipped due to PARSER errors");
