@@ -14,6 +14,10 @@ public class semanticAnalysis {
   boolean exists = false;
   boolean end = false;
   
+  // for knowing when to climb
+  boolean inBlock = false;
+  boolean inIf = false;
+  
   public semanticAnalysis() {
     // default constructor
   }
@@ -95,7 +99,9 @@ public class semanticAnalysis {
         String type1 = "";
         String type2 = "";
         
-        if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("BOOLINEQ")) {
+        inIf = true;
+        
+        if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("!=")) {
           AST.growBranch("Not Equal");
         }
         else {
@@ -121,7 +127,7 @@ public class semanticAnalysis {
         String type1 = "";
         String type2 = "";
         
-        if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("BOOLINEQ")) {
+        if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("!=")) {
           AST.growBranch("Not Equal");
         }
         else {
@@ -130,6 +136,8 @@ public class semanticAnalysis {
         
         type1 = exprBranches(node.tree.get(1).tree.get(1), false);
         type2 = exprBranches(node.tree.get(1).tree.get(3), true);
+        
+        inBlock = true;
         
         if (!(type1.equals(type2))) {
           typeErrs++;
@@ -161,6 +169,12 @@ public class semanticAnalysis {
       }
       
       AST.sproutLeaf(word, "String", currentScope);
+      
+      if (!inBlock) {
+        if (ret) {
+          AST.climb();
+        }
+      }
       
       return "string";
     }
@@ -202,7 +216,7 @@ public class semanticAnalysis {
       else {
         String ttype1 = "";
         String ttype2 = "";
-        if (exp.tree.get(0).tree.get(2).tree.get(0).token.equals("BOOLINEQ")) {
+        if (exp.tree.get(0).tree.get(2).tree.get(0).token.equals("!=")) {
           AST.growBranch("Not Equal");
         }
         else {
@@ -223,14 +237,17 @@ public class semanticAnalysis {
     else if (exp.tree.get(0).token.equals("Id")) {
       AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
       
-      exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token, currentScope, symbolTable);
-      if (exists) {
-        errors = true;
+      exists = symbolTable.get(currentScope).doesExist(exp.tree.get(0).tree.get(0).token, currentScope, symbolTable, currentScope);
+      
+      if (!inBlock) {
+        if (ret) {
+          AST.climb();
+        }
       }
-      else {
-        exists = false;
-        typeErrs++;
-        return "Id";
+      if (inIf) {
+        AST.climb();
+        AST.climb();
+        inIf = false;
       }
     }
     return "Error";
@@ -341,7 +358,34 @@ class Scope {
     return err;
   }
   
-  public boolean doesExist(String id, int scope, ArrayList<Scope> table) {
+  public String retType(String id, ArrayList<Scope> table) {
+    String reType = "";
+    char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+    
+    int col = 0;
+    char check = id.charAt(0);
+    
+    for (int u=0; u<alphabet.length; u++) {
+      if (check == alphabet[u]) {
+        col = u;
+      }
+    }
+    
+    if (vars[col] != null) {
+      reType = vars[col].vType;
+    }
+    else if (vars[col] == null && prevScope != -2) {
+      reType = table.get(prevScope).retType(id, table);
+    }
+    else {
+      reType = "Error";
+    }
+    
+    return reType;
+  }
+  
+  public boolean doesExist(String id, int scope, ArrayList<Scope> table, int ogScope) {
     boolean exists = false;
     boolean initialized = false;
     char[] alphabet = new char[] {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
@@ -356,15 +400,16 @@ class Scope {
       }
     }
     
-    if (vars[col] == null) {
-      exists = false;
-      System.out.println("SEMANTIC ERROR: Variable " + id + " in scope " + scope + " used before declared");
+    if (vars[col] == null && prevScope != -2) {
+      exists = table.get(prevScope).doesExist(id, prevScope, table, ogScope);
     }
-    else {
-      exists = true;
+    else if (vars[col] == null && prevScope != -2) {
+      System.out.println("SEMANTIC ERROR: Variable " + id + " used before declared");
+    }
+    else if (vars[col] != null) {
       vars[col].inUse = true;
-      // ok, it's declared, check if it has a value bound to it
-      initialized = table.get(scope).isInitialized(id, scope, table);
+      initialized = table.get(ogScope).isInitialized(id, ogScope, table);
+      exists = true;
     }
     
     return exists;
