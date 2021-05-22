@@ -162,7 +162,7 @@ public class semanticAnalysis {
       
       AST.sproutLeaf(word, "String", currentScope);
       
-      return "String";
+      return "string";
     }
     else if (exp.tree.get(0).token.equals("IntExpr")) {
       if (exp.tree.get(0).tree.size() == 1) {
@@ -179,7 +179,7 @@ public class semanticAnalysis {
         
         ttype = exprBranches(exp.tree.get(0).tree.get(2), true);
         
-        if (!(ttype.equals("Int"))) {
+        if (!(ttype.equals("int"))) {
           typeErrs++;
           System.out.println("SEMANTIC ERROR: Expected Int when adding, got " + ttype);
         }
@@ -189,7 +189,7 @@ public class semanticAnalysis {
         }
       }
       
-      return "Int";
+      return "int";
     }
     else if (exp.tree.get(0).token.equals("BooleanExpr")) {
       if (exp.tree.get(0).tree.size() == 1) {
@@ -218,7 +218,7 @@ public class semanticAnalysis {
         AST.climb();
       }
       
-      return "Bool";
+      return "boolean";
     }
     else if (exp.tree.get(0).token.equals("Id")) {
       AST.sproutLeaf(exp.tree.get(0).tree.get(0).token);
