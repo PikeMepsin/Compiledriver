@@ -22,6 +22,11 @@ class CSTNode {
     this.type = type;
   }
   
+  public CSTNode(String tok, int scope) {
+    this.token = tok;
+    this.sc0pe = scope;
+  }
+  
   // AST leaf nodes
   public CSTNode(String tok, String type, int scope) {
     this.token = tok;
@@ -65,6 +70,18 @@ public class CST {
     CSTNode node = new CSTNode(name);
     if(this.root == null) {
       this.root = node;
+    }
+    else {
+      node.parent = this.pointer;
+      this.pointer.tree.add(node);
+    }
+    this.pointer = node;
+  }
+  
+  public void growBranch(String name, int sco) {
+    CSTNode node = new CSTNode(name, sco);
+    if (this.root == null) {
+      this.root = note;
     }
     else {
       node.parent = this.pointer;

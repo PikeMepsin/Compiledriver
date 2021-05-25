@@ -29,9 +29,7 @@ public class semanticAnalysis {
     if (node.token.equals("$")) {
       end = true;
     }
-    else if (node.token.equals("{")) {
-      AST.growBranch("Block");
-      
+    else if (node.token.equals("{")) {      
       if (currentScope == -1) {
         symbolTable.add(new Scope());
       }
@@ -40,6 +38,7 @@ public class semanticAnalysis {
       }
       
       currentScope = symbolTable.size()-1;
+      AST.growBranch("Block", currentScope);
     }
     else if (node.token.equals("}")) {
       AST.climb();
@@ -49,7 +48,7 @@ public class semanticAnalysis {
     }
     // print statement
     else if (node.token.equals("PrintStatement")) {
-      AST.growBranch("Print");
+      AST.growBranch("Print", currentScope);
       
       CSTNode expression = null;
       expression = node.tree.get(2);
@@ -61,7 +60,7 @@ public class semanticAnalysis {
     else if (node.token.equals("VarDecl")) {
       // assignment statement doesn't need the '=' or another expression
       // it will always need only Id and type
-      AST.growBranch("VarDecl");
+      AST.growBranch("VarDecl", currentScope);
       AST.sproutLeaf(node.tree.get(0).tree.get(0).token);
       AST.sproutLeaf(node.tree.get(1).tree.get(0).token, node.tree.get(0).tree.get(0).token, currentScope);
       
@@ -76,7 +75,7 @@ public class semanticAnalysis {
     }
     else if (node.token.equals("AssignmentStatement")) {
       String typ = "";
-      AST.growBranch("Assign");
+      AST.growBranch("Assign", currentScope);
       
       AST.sproutLeaf(node.tree.get(0).tree.get(0).token, node.tree.get(0).tree.get(0).type, currentScope);
       
@@ -91,7 +90,7 @@ public class semanticAnalysis {
       AST.climb();
     }
     else if (node.token.equals("IfStatement")) {
-      AST.growBranch("If");
+      AST.growBranch("If", currentScope);
       if (node.tree.get(1).tree.size() == 1) {
         AST.sproutLeaf(node.tree.get(1).tree.get(0).tree.get(0).token, node.tree.get(1).tree.get(0).tree.get(0).token, currentScope);
       }
@@ -102,10 +101,10 @@ public class semanticAnalysis {
         inIf = true;
         
         if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("!=")) {
-          AST.growBranch("Not Equal");
+          AST.growBranch("Not Equal", currentScope);
         }
         else {
-          AST.growBranch("Equal");
+          AST.growBranch("Equal", currentScope);
         }
         
         type1 = exprBranches(node.tree.get(1).tree.get(1), false);
@@ -119,7 +118,7 @@ public class semanticAnalysis {
       }
     }
     else if (node.token.equals("WhileStatement")) {
-      AST.growBranch("While");
+      AST.growBranch("While", currentScope);
       
       if (node.tree.get(1).tree.size() == 1) {
         AST.sproutLeaf(node.tree.get(1).tree.get(0).tree.get(0).token, node.tree.get(1).tree.get(0).tree.get(0).token, currentScope);
@@ -129,10 +128,10 @@ public class semanticAnalysis {
         String type2 = "";
         
         if (node.tree.get(1).tree.get(2).tree.get(0).token.equals("!=")) {
-          AST.growBranch("Not Equal");
+          AST.growBranch("Not Equal", currentScope);
         }
         else {
-          AST.growBranch("Equal");
+          AST.growBranch("Equal", currentScope);
         }
         
         type1 = exprBranches(node.tree.get(1).tree.get(1), false);
@@ -207,7 +206,7 @@ public class semanticAnalysis {
       }
       else {
         String ttype = "";
-        AST.growBranch("Add");
+        AST.growBranch("Add", currentScope);
         AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).type, currentScope);
         
         ttype = exprBranches(exp.tree.get(0).tree.get(2), true);
@@ -237,10 +236,10 @@ public class semanticAnalysis {
         String ttype1 = "";
         String ttype2 = "";
         if (exp.tree.get(0).tree.get(2).tree.get(0).token.equals("!=")) {
-          AST.growBranch("Not Equal");
+          AST.growBranch("Not Equal", currentScope);
         }
         else {
-          AST.growBranch("Equal");
+          AST.growBranch("Equal", currentScope);
         }
         
         ttype1 = exprBranches(exp.tree.get(0).tree.get(1), true);
