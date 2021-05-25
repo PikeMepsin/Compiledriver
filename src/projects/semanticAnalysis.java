@@ -161,6 +161,8 @@ public class semanticAnalysis {
       if (errList.size() == 0 && typeErrs == 0) {
         System.out.println("SEMANTIC - AST Error-free, printing Symbol Table");
         printSymTable();
+        codeGenerator gen = new codeGenerator();
+        gen.generate(AST.root, progNum);
       }
       else {
         System.out.println("SEMANTIC - Error - Skipping Symbol Table");

@@ -12,7 +12,7 @@ public class codeGenerator {
     }
   };
   
-  public void generate(CSTNode node) {
+  public void generate(CSTNode node, int prog) {
     currentScope = node.sc0pe;
     System.out.println(currentScope);
   }

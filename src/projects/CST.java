@@ -81,7 +81,7 @@ public class CST {
   public void growBranch(String name, int sco) {
     CSTNode node = new CSTNode(name, sco);
     if (this.root == null) {
-      this.root = note;
+      this.root = node;
     }
     else {
       node.parent = this.pointer;
