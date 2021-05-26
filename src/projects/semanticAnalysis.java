@@ -163,6 +163,8 @@ public class semanticAnalysis {
         printSymTable();
         codeGenerator gen = new codeGenerator();
         gen.generate(AST.root, progNum);
+        gen.backpatch();
+        gen.printOps();
       }
       else {
         System.out.println("SEMANTIC - Error - Skipping Symbol Table");

@@ -11,6 +11,7 @@ public class codeGenerator {
   ArrayList<staticVar> staticTable = new ArrayList<staticVar>();
   ArrayList<bList> blockTable = new ArrayList<bList>();
   ArrayList<stringLoc> words = new ArrayList<stringLoc>();
+  ArrayList<jumpVar> jumpTable = new ArrayList<jumpVar>();
   
   // positional counters
   int pos = 0;
@@ -354,6 +355,60 @@ public class codeGenerator {
     }
   }
   
+  public void backpatch() {
+    opCodes[pos] = "00";
+    pos++;
+    opCodes[pos] = "00";
+    pos++;
+    
+    for (int r=0; r<staticTable.size(); r++) {
+      staticTable.get(r).actualC = this.toHex(pos);
+      pos++;
+    }
+    
+    for (int t=0; t<staticTable.size(); t++) {
+      for (int u=0; u<opCodes.length; u++) {
+        if (staticTable.get(t).tmp.equals(opCodes[u])) {
+          if (staticTable.get(t).tmp2.equals(opCodes[u+1])) {
+            opCodes[u] = staticTable.get(t).actualC;
+            opCodes[u+1] = "00";
+          }
+        }
+      }
+    }
+    
+    for (int v=0; v<jumpTable.size(); v++) {
+      jumpTable.get(v).replace = this.toHex(jumpTable.get(v).len);
+    }
+    
+    for (int w=0; w<jumpTable.size(); w++) {
+      for (int x=0; x<opCodes.length; x++) {
+        if (jumpTable.get(w).tmp.equals(opCodes[x])) {
+          opCodes[x] = jumpTable.get(w).replace;
+        }
+      }
+    }
+  }
+  
+  public void printOps() {
+    int format = 0;
+    String line = "";
+    
+    System.out.println();
+    for (int y=0; y<opCodes.length; y++) {
+      if (format == 8) {
+        System.out.println(line);
+        format = 0;
+        line = "";
+      }
+      line = line + opCodes[y] + " ";
+      format++;
+      if (y == 254) {
+        System.out.println(line); 
+      }
+    }
+  }
+  
   public void intSequence(CSTNode node, String tmp1, String tmp2, boolean first) {
     String temp1 = "";
     String temp2 = "";
@@ -532,6 +587,8 @@ class staticVar {
   int scope = 0;
   int offset = 0;
   boolean isStri = false;
+  
+  String actualC = "";
   
   public staticVar() {
     // default constructor
