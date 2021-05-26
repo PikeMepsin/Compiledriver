@@ -361,6 +361,7 @@ public class codeGenerator {
         pos++;
       }
     }
+    else if (node.token.equals("If"))
     
     if ((!ignoreNext || override) && node.tree.size() != 0) {
       for (int q=0; q<node.tree.size(); q++) {

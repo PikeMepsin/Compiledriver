@@ -272,7 +272,17 @@ public class semanticAnalysis {
         AST.climb();
         inIf = false;
       }
+      
+      if (exists) {
+        return symbolTable.get(currentScope).retType(exp.tree.get(0).tree.get(0).token, symbolTable);
+      }
+      else {
+        exists = false;
+        typeErrs++;
+        return "ID";
+      }
     }
+    
     return "Error";
   }
   

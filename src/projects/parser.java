@@ -256,8 +256,8 @@ public class parser {
       tree.growBranch("IntExpr");
       
       // a digit, alone in an unforgiving compiler
-      parseDigit();
-      
+      isMatch = parseDigit();
+      tree.climb();
       // digit + Expr
       if (input.get(index).name.equals("INCROP")) {
         isMatch = match("INCROP");
@@ -296,14 +296,14 @@ public class parser {
       // boolean expressions in parens()
       if (input.get(index).name.equals("OPENPAREN")) {
         isMatch = match("OPENPAREN");
-        parseExpr();
-        parseBoolOp();
-        parseExpr();
+        isMatch = parseExpr();
+        isMatch = parseBoolOp();
+        isMatch = parseExpr();
         isMatch = match("CLOSEPAREN");
       }
       // boolean values
       else {
-        parseBoolVal();
+        isMatch = parseBoolVal();
       }
       tree.climb();
     }
