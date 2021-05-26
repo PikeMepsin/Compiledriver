@@ -35,9 +35,11 @@ public class codeGenerator {
     if (node.token.equals("VarDecl")) {
       opCodes[pos] = "A9";
       pos++;
+      //System.out.println(pos + " vardecl");
       
       opCodes[pos] = "00";
       pos++;
+      //System.out.println(pos);
       
       opCodes[pos] = "8D";
       pos++;
@@ -45,7 +47,9 @@ public class codeGenerator {
       if (staticTemp <10) {
         String tname = "T" + staticTemp;
         staticVar temp;
-        if (node.tree.get(0).token.equals("string")) {
+        System.out.println(node.tree.get(0).type);
+        if (node.tree.get(0).type.equals("String")) {
+          System.out.println("String added");
           temp = new staticVar(tname, "XX", node.tree.get(1).token, node.tree.get(1).sc0pe, staticTemp, true);
         }
         else {
@@ -56,6 +60,7 @@ public class codeGenerator {
         
         opCodes[pos] = tname;
         pos++;
+        //System.out.println(pos + " made it in");
         
         opCodes[pos] = "XX";
         pos++;
@@ -63,7 +68,7 @@ public class codeGenerator {
       else {
         String tname = Integer.toString(staticTemp);
         staticVar temp;
-        if (node.tree.get(0).type.equals("string")) {
+        if (node.tree.get(0).type.equals("String")) {
           temp = new staticVar("T0", tname, node.tree.get(1).token, node.tree.get(1).sc0pe, staticTemp, true);
         }
         else {
@@ -86,7 +91,8 @@ public class codeGenerator {
       prevScope = currentScope;
     }
     else if (node.token.equals("Print")) {
-      if (node.tree.get(0).type.equals("Id")) {
+      if (node.tree.get(0).type.equals("ID")) {
+        System.out.println(node.tree.get(0).token + " " + node.tree.get(0).type);
         opCodes[pos] = "AC";
         pos++;
         
@@ -137,7 +143,7 @@ public class codeGenerator {
         }
       }
       
-      else if (node.tree.get(0).type.equals("Digit")) {
+      else if (node.tree.get(0).type.equals("Int")) {
         opCodes[pos] = "A0";
         pos++;
         
@@ -176,7 +182,7 @@ public class codeGenerator {
         opCodes[pos] = "01";
         pos++;
       }
-      else if (node.tree.get(0).type.equals("string")) {
+      else if (node.tree.get(0).type.equals("String")) {
         opCodes[pos] = "A0";
         pos++;
         
@@ -225,7 +231,8 @@ public class codeGenerator {
       opCodes[pos] = "A9";
       pos++;
       
-      if(!node.tree.get(0).token.equals("string")) {
+      System.out.println(node.tree.get(1).type);
+      if(!node.tree.get(0).token.equals("String")) {
         if (node.tree.get(1).token.equals("true") || node.tree.get(1).token.equals("false")) {
           if (node.tree.get(1).token.equals("true")) {
             opCodes[pos] = "01";
@@ -237,8 +244,9 @@ public class codeGenerator {
           }
         }
       }
-      else if (node.tree.get(1).token.equals("Digit")) {
+      else if (node.tree.get(1).type.equals("Int")) {
         String num = "0" + node.tree.get(1).token;
+        System.out.println("int is a hit");
         opCodes[pos] = num;
         pos++;
       }
@@ -246,7 +254,7 @@ public class codeGenerator {
         this.intSequence(node.tree.get(1), "", "", true);
         ignoreNext = true;
       }
-      else if (node.tree.get(1).type.equals("string")) {
+      else if (node.tree.get(1).type.equals("String")) {
         String word = node.tree.get(1).token;
         boolean skip = false;
         
@@ -315,7 +323,7 @@ public class codeGenerator {
           temp1 = tname;
           temp2 = "XX";
           staticVar temp;
-          if (node.tree.get(1).type.equals("string")) {
+          if (node.tree.get(1).type.equals("String")) {
             temp = new staticVar(temp1, temp2, node.tree.get(0).token, currentScope, staticTemp, true);
           }
           else {
@@ -329,7 +337,7 @@ public class codeGenerator {
           temp1 = "T0";
           temp2 = tname;
           staticVar temp;
-          if (node.tree.get(1).type.equals("string")) {
+          if (node.tree.get(1).type.equals("String")) {
             temp = new staticVar(temp1, temp2, node.tree.get(0).token, currentScope, staticTemp, true);
           }
           else {
@@ -351,6 +359,33 @@ public class codeGenerator {
         pos++;
         opCodes[pos] = temp2;
         pos++;
+      }
+    }
+    
+    if ((!ignoreNext || override) && node.tree.size() != 0) {
+      for (int q=0; q<node.tree.size(); q++) {
+        generate(node.tree.get(q), prog);
+      }
+      ignoreNext = false;
+      override = false;
+    }
+  }
+  
+  public void printOps() {
+    int format = 0;
+    String line = "";
+    
+    System.out.println();
+    for (int y=0; y<opCodes.length; y++) {
+      if (format == 8) {
+        System.out.println(line);
+        format = 0;
+        line = "";
+      }
+      line = line + opCodes[y] + " ";
+      format++;
+      if (y == 254) {
+        System.out.println(line); 
       }
     }
   }
@@ -386,25 +421,6 @@ public class codeGenerator {
         if (jumpTable.get(w).tmp.equals(opCodes[x])) {
           opCodes[x] = jumpTable.get(w).replace;
         }
-      }
-    }
-  }
-  
-  public void printOps() {
-    int format = 0;
-    String line = "";
-    
-    System.out.println();
-    for (int y=0; y<opCodes.length; y++) {
-      if (format == 8) {
-        System.out.println(line);
-        format = 0;
-        line = "";
-      }
-      line = line + opCodes[y] + " ";
-      format++;
-      if (y == 254) {
-        System.out.println(line); 
       }
     }
   }
