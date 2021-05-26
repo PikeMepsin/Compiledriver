@@ -84,6 +84,142 @@ public class codeGenerator {
     else if (node.token.equals("Block")) {
       prevScope = currentScope;
     }
+    else if (node.token.equals("Print")) {
+      if (node.tree.get(0).type.equals("Id")) {
+        opCodes[pos] = "AC";
+        pos++;
+        
+        String temp1 = "";
+        String temp2 = "";
+        boolean found = false;
+        boolean first = false;
+        staticVar neoVar = null;
+        for (int k=0; k<staticTable.size(); k++) {
+          if (staticTable.get(k).id != null) {
+            if (staticTable.get(k).id.equals(node.tree.get(0).token)) {
+              if (!first) {
+                neoVar = staticTable.get(k);
+                first = true;
+              }
+              if (staticTable.get(k).scope == currentScope) {
+                found = true;
+                temp1 = staticTable.get(k).tmp;
+                temp2 = staticTable.get(k).tmp2;
+                neoVar = staticTable.get(k);
+              }
+            }
+          }
+        }
+        
+        if (!found) {
+          if (first) {
+            temp1 = neoVar.tmp;
+            temp2 = neoVar.tmp2;
+          }
+        }
+        
+        opCodes[pos] = temp1;
+        pos++;
+        opCodes[pos] = temp2;
+        pos++;
+        
+        opCodes[pos] = "A2";
+        pos++;
+        
+        if (neoVar.isStri == false) {
+          opCodes[pos] = "01";
+          pos++;
+        }
+        else {
+          opCodes[pos] = "02";
+          pos++;
+        }
+      }
+      
+      else if (node.tree.get(0).type.equals("Digit")) {
+        opCodes[pos] = "A0";
+        pos++;
+        
+        String num = "0" + node.tree.get(0).token;
+        opCodes[pos] = num;
+        pos++;
+        
+        opCodes[pos] = "A2";
+        pos++;
+        opCodes[pos] = "01";
+        pos++;
+      }
+      else if (node.tree.get(0).token.equals("true")) {
+        opCodes[pos] = "A0";
+        pos++;
+        
+        opCodes[pos] = "01";
+        pos++;
+        
+        opCodes[pos] = "A2";
+        pos++;
+        
+        opCodes[pos] = "01";
+        pos++;
+      }
+      else if (node.tree.get(0).token.equals("false")) {
+        opCodes[pos] = "A0";
+        pos++;
+        
+        opCodes[pos] = "00";
+        pos++;
+        
+        opCodes[pos] = "A2";
+        pos++;
+        
+        opCodes[pos] = "01";
+        pos++;
+      }
+      else if (node.tree.get(0).type.equals("string")) {
+        opCodes[pos] = "A0";
+        pos++;
+        
+        String word = node.tree.get(0).token;
+        boolean skip = false;
+        
+        for (int m=0; m<words.size(); m++) {
+          if (words.get(m).word.equals(word)) {
+            opCodes[pos] = words.get(m).loc;
+            pos++;
+            skip = true;
+          }
+        }
+        
+        if (!skip) {
+          stringPos = stringPos - word.length();
+          int tempor = stringPos;
+          
+          for (int n=0; n<word.length(); n++) {
+            char tempo = word.charAt(n);
+            opCodes[pos] = this.toHex((int) tempo);
+            stringPos++;
+          }
+          
+          opCodes[stringPos] = "00";
+          opCodes[pos] = this.toHex(tempor);
+          
+          stringLoc stor = new stringLoc(word);
+          stor.loc = this.toHex(tempor);
+          words.add(stor);
+          
+          pos++;
+          stringPos = tempor;
+        }
+        
+        opCodes[pos] = "A2";
+        pos++;
+        opCodes[pos] = "02";
+        pos++;
+      }
+      
+      opCodes[pos] = "FF";
+      pos++;
+    }
     else if (node.token.equals("Assign")) {
       opCodes[pos] = "A9";
       pos++;
@@ -222,7 +358,7 @@ public class codeGenerator {
     String temp1 = "";
     String temp2 = "";
     
-    if (!node.tree.get(1).token.equals("Id")) {
+    if (!node.tree.get(1).type.equals("Id")) {
       if (first) {
         if (override && !inIf) {
           opCodes[pos] = "A9";
@@ -421,6 +557,24 @@ class stringLoc {
   
   public stringLoc(String name) {
     word = name;
+  }
+}
+
+class jumpVar {
+  String tmp = "";
+  int len = 0;
+  String replace = "";
+  
+  public jumpVar() {
+    // default constructor
+  }
+  
+  public jumpVar(String name) {
+    tmp = name;
+  }
+  
+  public void setLen(int l) {
+    len = l;
   }
 }
 

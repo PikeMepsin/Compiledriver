@@ -200,7 +200,7 @@ public class semanticAnalysis {
     }
     else if (exp.tree.get(0).token.equals("IntExpr")) {
       if (exp.tree.get(0).tree.size() == 1) {
-        AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).token, currentScope);
+        AST.sproutLeaf(exp.tree.get(0).tree.get(0).tree.get(0).token, exp.tree.get(0).tree.get(0).tree.get(0).type, currentScope);
         
         if (ret) {
           AST.climb();
