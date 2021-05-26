@@ -15,6 +15,7 @@ public class codeGenerator {
   // positional counters
   int pos = 0;
   int staticTemp = 0;
+  int stringPos = 254; //keeps track for reference variables
   
   // flags
   boolean override = false;
@@ -61,7 +62,7 @@ public class codeGenerator {
       else {
         String tname = Integer.toString(staticTemp);
         staticVar temp;
-        if (node.tree.get(0).token.equals("string")) {
+        if (node.tree.get(0).type.equals("string")) {
           temp = new staticVar("T0", tname, node.tree.get(1).token, node.tree.get(1).sc0pe, staticTemp, true);
         }
         else {
@@ -108,9 +109,111 @@ public class codeGenerator {
         this.intSequence(node.tree.get(1), "", "", true);
         ignoreNext = true;
       }
-      else if (node.tree.get(1).token.equals("string")) {
-        System.out.println(node.tree.get(1).token);
-        System.out.println(node.tree.get(1).type);
+      else if (node.tree.get(1).type.equals("string")) {
+        String word = node.tree.get(1).token;
+        boolean skip = false;
+        
+        for (int d=0; d<words.size(); d++) {
+          if (words.get(d).word.equals(word)) {
+            opCodes[pos] = words.get(d).loc;
+            pos++;
+            skip = true;
+          }
+        }
+        
+        if (!skip) {
+          stringPos = stringPos - word.length()-1;
+          int tempor = stringPos;
+          
+          for (int d=0; d<word.length(); d++) {
+            char tempo = word.charAt(d);
+            opCodes[stringPos] = this.toHex((int) tempo);
+            stringPos++;
+          }
+          
+          opCodes[stringPos] = "00";
+          opCodes[pos] = this.toHex(tempor);
+          
+          stringLoc stor = new stringLoc(word);
+          stor.loc = this.toHex(tempor);
+          words.add(stor);
+          
+          pos++;
+          stringPos = tempor;
+        }
+        skip = false;
+      }
+      
+      opCodes[pos] = "8D";
+      pos++;
+      
+      int tempSco = -2;
+      boolean found = false;
+      String temp1 = "";
+      String temp2 = "";
+      
+      for (int f=0; f<staticTable.size(); f++) {
+        if (staticTable.get(f).id != null) {
+          if (staticTable.get(f).id.equals(node.tree.get(0).token)) {
+            if (!ignoreNext) {
+              tempSco = staticTable.get(f).scope;
+              if (tempSco == currentScope) {
+                found = true;
+                temp1 = staticTable.get(f).tmp;
+                temp2 = staticTable.get(f).tmp2;
+              }
+            }
+            else {
+              found = true;
+              temp1 = staticTable.get(f).tmp;
+              temp2 = staticTable.get(f).tmp2;
+            }
+          }
+        }
+      }
+      
+      if (!found && tempSco != -2) {
+        if (staticTemp < 10) {
+          String tname = "T" + staticTemp;
+          temp1 = tname;
+          temp2 = "XX";
+          staticVar temp;
+          if (node.tree.get(1).type.equals("string")) {
+            temp = new staticVar(temp1, temp2, node.tree.get(0).token, currentScope, staticTemp, true);
+          }
+          else {
+            temp = new staticVar(temp1, temp2, node.tree.get(0).token, currentScope, staticTemp, false);
+          }
+          staticTable.add(temp);
+          staticTemp++;
+        }
+        else {
+          String tname = Integer.toString(staticTemp);
+          temp1 = "T0";
+          temp2 = tname;
+          staticVar temp;
+          if (node.tree.get(1).type.equals("string")) {
+            temp = new staticVar(temp1, temp2, node.tree.get(0).token, currentScope, staticTemp, true);
+          }
+          else {
+            temp = new staticVar(temp1, temp2, node.tree.get(0).token, currentScope, staticTemp, false);
+          }
+          staticTable.add(temp);
+          staticTemp++;
+        }
+        
+        staticTemp++;
+        
+        opCodes[pos] = temp1;
+        pos++;
+        opCodes[pos] = temp2;
+        pos++;
+      }
+      else {
+        opCodes[pos] = temp1;
+        pos++;
+        opCodes[pos] = temp2;
+        pos++;
       }
     }
   }
@@ -267,6 +370,22 @@ public class codeGenerator {
       opCodes[pos] = temp002;
       pos++;
     }
+  }
+  
+  public String toHex(int c) {
+    char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    int rem = 0;
+    String retHex = "";
+    while (c > 0) {
+      rem = c%16;
+      retHex = hex[rem] + retHex;
+      c /= 16;
+    }
+    
+    if (retHex.length() == 1) {
+      retHex = "0" + retHex;
+    }
+    return retHex;
   }
 }
 
