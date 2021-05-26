@@ -47,9 +47,7 @@ public class codeGenerator {
       if (staticTemp <10) {
         String tname = "T" + staticTemp;
         staticVar temp;
-        System.out.println(node.tree.get(0).type);
         if (node.tree.get(0).type.equals("String")) {
-          System.out.println("String added");
           temp = new staticVar(tname, "XX", node.tree.get(1).token, node.tree.get(1).sc0pe, staticTemp, true);
         }
         else {
@@ -92,7 +90,6 @@ public class codeGenerator {
     }
     else if (node.token.equals("Print")) {
       if (node.tree.get(0).type.equals("ID")) {
-        System.out.println(node.tree.get(0).token + " " + node.tree.get(0).type);
         opCodes[pos] = "AC";
         pos++;
         
@@ -231,7 +228,7 @@ public class codeGenerator {
       opCodes[pos] = "A9";
       pos++;
       
-      System.out.println(node.tree.get(1).type);
+      // System.out.println(node.tree.get(1).type);
       if(!node.tree.get(0).token.equals("String")) {
         if (node.tree.get(1).token.equals("true") || node.tree.get(1).token.equals("false")) {
           if (node.tree.get(1).token.equals("true")) {
@@ -246,7 +243,7 @@ public class codeGenerator {
       }
       else if (node.tree.get(1).type.equals("Int")) {
         String num = "0" + node.tree.get(1).token;
-        System.out.println("int is a hit");
+        // System.out.println("int is a hit");
         opCodes[pos] = num;
         pos++;
       }
@@ -361,7 +358,6 @@ public class codeGenerator {
         pos++;
       }
     }
-    else if (node.token.equals("If"))
     
     if ((!ignoreNext || override) && node.tree.size() != 0) {
       for (int q=0; q<node.tree.size(); q++) {
@@ -376,7 +372,7 @@ public class codeGenerator {
     int format = 0;
     String line = "";
     
-    System.out.println();
+    System.out.println("\nCODE GEN: Printing Machine Code");
     for (int y=0; y<opCodes.length; y++) {
       if (format == 8) {
         System.out.println(line);
